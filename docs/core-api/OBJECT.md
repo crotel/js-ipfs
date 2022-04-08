@@ -343,7 +343,7 @@ An optional object which may have the following keys:
 const cid = await ipfs.object.patch.addLink(node, {
   name: 'some-link',
   size: 10,
-  cid: new CID('QmPTkMuuL6PD8L2SwTwbcs1NPg14U8mRzerB1ZrrBrkSDD')
+  cid: CID.parse('QmPTkMuuL6PD8L2SwTwbcs1NPg14U8mRzerB1ZrrBrkSDD')
 })
 ```
 
@@ -357,7 +357,7 @@ The `DAGLink` to be added can also be passed as an object containing: `name`, `c
 const link = {
   name: 'Qmef7ScwzJUCg1zUSrCmPAz45m8uP5jU7SLgt2EffjBmbL',
   size: 37,
-  cid: new CID('Qmef7ScwzJUCg1zUSrCmPAz45m8uP5jU7SLgt2EffjBmbL')
+  cid: CID.parse('Qmef7ScwzJUCg1zUSrCmPAz45m8uP5jU7SLgt2EffjBmbL')
 };
 ```
 
@@ -398,9 +398,9 @@ An optional object which may have the following keys:
 ```JavaScript
 // cid is CID of the DAG node created by removing a link
 const cid = await ipfs.object.patch.rmLink(node, {
-  name: 'some-link',
-  size: 10,
-  cid: new CID('QmPTkMuuL6PD8L2SwTwbcs1NPg14U8mRzerB1ZrrBrkSDD')
+  Name: 'some-link',
+  Tsize: 10,
+  Hash: CID.parse('QmPTkMuuL6PD8L2SwTwbcs1NPg14U8mRzerB1ZrrBrkSDD')
 })
 ```
 

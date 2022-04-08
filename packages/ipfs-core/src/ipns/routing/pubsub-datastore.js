@@ -1,19 +1,17 @@
-'use strict'
+import * as ipns from 'ipns'
+import { base58btc } from 'multiformats/bases/base58'
+import { PubsubDatastore } from 'datastore-pubsub'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import errcode from 'err-code'
+import debug from 'debug'
 
-const ipns = require('ipns')
-const { toB58String } = require('multihashing-async').multihash
-const PubsubDatastore = require('datastore-pubsub')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const uint8ArrayFromString = require('uint8arrays/from-string')
-
-const errcode = require('err-code')
-const debug = require('debug')
 const log = Object.assign(debug('ipfs:ipns:pubsub'), {
   error: debug('ipfs:ipns:pubsub:error')
 })
 
 // Pubsub datastore aims to manage the pubsub subscriptions for IPNS
-class IpnsPubsubDatastore {
+export class IpnsPubsubDatastore {
   /**
    * @param {import('libp2p-interfaces/src/pubsub')} pubsub
    * @param {import('interface-datastore').Datastore} localDatastore
@@ -36,9 +34,14 @@ class IpnsPubsubDatastore {
    * @param {Uint8Array} key - identifier of the value.
    * @param {Uint8Array} value - value to be stored.
    */
-  put (key, value) {
-    // @ts-ignore datastores take Key keys, this one takes Uint8Array keys
-    return this._pubsubDs.put(key, value)
+  async put (key, value) {
+    try {
+      // @ts-ignore datastores take Key keys, this one takes Uint8Array keys
+      await this._pubsubDs.put(key, value)
+    } catch (/** @type {any} */ err) {
+      log.error(err)
+      throw err
+    }
   }
 
   /**
@@ -55,7 +58,7 @@ class IpnsPubsubDatastore {
     try {
       // @ts-ignore datastores take Key keys, this one takes Uint8Array keys
       res = await this._pubsubDs.get(key)
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       err = e
     }
 
@@ -63,8 +66,8 @@ class IpnsPubsubDatastore {
     const ns = key.slice(0, ipns.namespaceLength)
 
     if (uint8ArrayToString(ns) === ipns.namespace) {
-      const stringifiedTopic = toB58String(key)
-      const id = toB58String(key.slice(ipns.namespaceLength))
+      const stringifiedTopic = base58btc.encode(key).substring(1)
+      const id = base58btc.encode(key.slice(ipns.namespaceLength)).substring(1)
 
       this._subscriptions[stringifiedTopic] = id
 
@@ -98,7 +101,7 @@ class IpnsPubsubDatastore {
     let keys
     try {
       keys = ipns.getIdKeys(uint8ArrayFromString(subscriber, 'base58btc'))
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       log.error(err)
       throw err
     }
@@ -152,5 +155,3 @@ class IpnsPubsubDatastore {
     }
   }
 }
-
-module.exports = IpnsPubsubDatastore

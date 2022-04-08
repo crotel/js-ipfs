@@ -1,21 +1,14 @@
-'use strict'
-
-const multipart = require('../../utils/multipart-request-parser')
-const mha = require('multihashing-async')
-const mh = mha.multihash
-const Joi = require('../../utils/joi')
-const Boom = require('@hapi/boom')
-const {
-  cidToString
-} = require('ipfs-core-utils/src/cid')
-const all = require('it-all')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const Block = require('ipld-block')
-const CID = require('cids')
+import { multipartRequestParser } from '../../utils/multipart-request-parser.js'
+import { streamResponse } from '../../utils/stream-response.js'
+import Joi from '../../utils/joi.js'
+import Boom from '@hapi/boom'
+import all from 'it-all'
+import { pipe } from 'it-pipe'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 
 /**
  * @param {undefined | Uint8Array | Record<string, any>} obj
- * @param {import('multibase').BaseName | 'utf8' | 'utf-8' | 'ascii'} encoding
+ * @param {'base64pad' | 'base16' | 'utf8'} encoding
  */
 const encodeBufferKeys = (obj, encoding) => {
   if (!obj) {
@@ -41,7 +34,7 @@ const encodeBufferKeys = (obj, encoding) => {
   return obj
 }
 
-exports.get = {
+export const getResource = {
   options: {
     validate: {
       options: {
@@ -97,7 +90,7 @@ exports.get = {
         signal,
         timeout
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.badRequest(err)
     }
 
@@ -109,7 +102,7 @@ exports.get = {
 
     try {
       result.value = encodeBufferKeys(value, dataEncoding)
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.boomify(err)
     }
 
@@ -117,7 +110,7 @@ exports.get = {
   }
 }
 
-exports.put = {
+export const putResource = {
   options: {
     payload: {
       parse: false,
@@ -134,15 +127,13 @@ exports.put = {
           throw Boom.badRequest("File argument 'object data' is required")
         }
 
-        const enc = request.query.inputEncoding
-
         if (!request.headers['content-type']) {
           throw Boom.badRequest("File argument 'object data' is required")
         }
 
         let data
 
-        for await (const part of multipart(request.raw.req)) {
+        for await (const part of multipartRequestParser(request.raw.req)) {
           if (part.type !== 'file') {
             continue
           }
@@ -154,40 +145,8 @@ exports.put = {
           throw Boom.badRequest("File argument 'object data' is required")
         }
 
-        let format = request.query.format
-
-        if (format === 'cbor') {
-          format = 'dag-cbor'
-        }
-
-        let node
-
-        if (format === 'raw') {
-          node = data
-        } else if (enc === 'json') {
-          try {
-            node = JSON.parse(data.toString())
-          } catch (err) {
-            throw Boom.badRequest('Failed to parse the JSON: ' + err)
-          }
-        } else {
-          // the node is an uncommon format which the client should have
-          // serialized so add it to the block store and fetch it deserialized
-          // before continuing
-          const hash = await mha(data, request.query.hash)
-          const cid = new CID(request.query.cidVersion, format, hash)
-
-          await request.server.app.ipfs.block.put(new Block(data, cid))
-
-          const {
-            value
-          } = await request.server.app.ipfs.dag.get(cid)
-          node = value
-        }
-
         return {
-          node,
-          format,
+          data,
           hashAlg: request.query.hash
         }
       }
@@ -198,23 +157,23 @@ exports.put = {
         stripUnknown: true
       },
       query: Joi.object().keys({
-        format: Joi.string().default('cbor'),
-        inputEncoding: Joi.string().default('json'),
+        storeCodec: Joi.string().default('dag-cbor'),
+        inputCodec: Joi.string().default('dag-json'),
         pin: Joi.boolean().default(false),
-        hash: Joi.string().valid(...Object.keys(mh.names)).default('sha2-256'),
-        cidBase: Joi.cidBase(),
-        cidVersion: Joi.number().integer().valid(0, 1).default(1),
+        hash: Joi.string().default('sha2-256'),
+        cidBase: Joi.string().default('base32'),
+        version: Joi.number().integer().valid(0, 1).default(1),
         timeout: Joi.timeout()
       })
-        .rename('input-enc', 'inputEncoding', {
+        .rename('store-codec', 'storeCodec', {
+          override: true,
+          ignoreUndefined: true
+        })
+        .rename('input-codec', 'inputCodec', {
           override: true,
           ignoreUndefined: true
         })
         .rename('cid-base', 'cidBase', {
-          override: true,
-          ignoreUndefined: true
-        })
-        .rename('cid-version', 'cidVersion', {
           override: true,
           ignoreUndefined: true
         })
@@ -237,43 +196,49 @@ exports.put = {
       },
       pre: {
         args: {
-          node,
-          format,
+          data,
           hashAlg
         }
       },
       query: {
+        inputCodec,
+        storeCodec,
         pin,
         cidBase,
+        version,
         timeout
       }
     } = request
 
+    const cidVersion = storeCodec === 'dag-pb' && hashAlg === 'sha2-256' ? version : 1
+
     let cid
 
     try {
-      cid = await ipfs.dag.put(node, {
-        format,
+      cid = await ipfs.dag.put(data, {
+        inputCodec,
+        storeCodec,
         hashAlg,
+        version: cidVersion,
         pin,
         signal,
         timeout
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.boomify(err, { message: 'Failed to put node' })
     }
 
+    const base = await ipfs.bases.getBase(cidVersion === 0 ? 'base58btc' : cidBase)
+
     return h.response({
       Cid: {
-        '/': cidToString(cid, {
-          base: cidBase
-        })
+        '/': cid.toString(base.encoder)
       }
     })
   }
 }
 
-exports.resolve = {
+export const resolveResource = {
   options: {
     validate: {
       options: {
@@ -282,7 +247,7 @@ exports.resolve = {
       },
       query: Joi.object().keys({
         arg: Joi.cidAndPath().required(),
-        cidBase: Joi.cidBase(),
+        cidBase: Joi.string().default('base58btc'),
         timeout: Joi.timeout(),
         path: Joi.string()
       })
@@ -327,16 +292,163 @@ exports.resolve = {
         timeout
       })
 
+      const base = await ipfs.bases.getBase(cidBase)
+
       return h.response({
         Cid: {
-          '/': cidToString(result.cid, {
-            base: cidBase
-          })
+          '/': result.cid.toString(base.encoder)
         },
         RemPath: result.remainderPath
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.boomify(err)
     }
+  }
+}
+
+export const exportResource = {
+  options: {
+    validate: {
+      options: {
+        allowUnknown: true,
+        stripUnknown: true
+      },
+      query: Joi.object().keys({
+        root: Joi.cid().required(),
+        timeout: Joi.timeout()
+      })
+        .rename('arg', 'root', {
+          override: true,
+          ignoreUndefined: true
+        })
+    }
+  },
+
+  /**
+   * @param {import('../../types').Request} request
+   * @param {import('@hapi/hapi').ResponseToolkit} h
+   */
+  async handler (request, h) {
+    const {
+      app: {
+        signal
+      },
+      server: {
+        app: {
+          ipfs
+        }
+      },
+      query: {
+        root,
+        timeout
+      }
+    } = request
+
+    return streamResponse(request, h, () => ipfs.dag.export(root, {
+      timeout,
+      signal
+    }), {
+      onError (err) {
+        err.message = 'Failed to export DAG: ' + err.message
+      }
+    })
+  }
+}
+
+export const importResource = {
+  options: {
+    payload: {
+      parse: false,
+      output: 'stream',
+      maxBytes: Number.MAX_SAFE_INTEGER
+    },
+    validate: {
+      options: {
+        allowUnknown: true,
+        stripUnknown: true
+      },
+      query: Joi.object().keys({
+        pinRoots: Joi.boolean().default(true),
+        timeout: Joi.timeout()
+      })
+        .rename('pin-roots', 'pinRoots', {
+          override: true,
+          ignoreUndefined: true
+        })
+    }
+  },
+
+  /**
+   * @param {import('../../types').Request} request
+   * @param {import('@hapi/hapi').ResponseToolkit} h
+   */
+  async handler (request, h) {
+    const {
+      app: {
+        signal
+      },
+      server: {
+        app: {
+          ipfs
+        }
+      },
+      query: {
+        pinRoots,
+        timeout
+      }
+    } = request
+
+    let filesParsed = false
+
+    return streamResponse(request, h, () => pipe(
+      multipartRequestParser(request.raw.req),
+      /**
+       * @param {AsyncIterable<import('../../types').MultipartEntry>} source
+       */
+      async function * (source) {
+        for await (const entry of source) {
+          if (entry.type !== 'file') {
+            throw Boom.badRequest('Unexpected upload type')
+          }
+
+          filesParsed = true
+          yield entry.content
+        }
+      },
+      /**
+       * @param {AsyncIterable<AsyncIterable<Uint8Array>>} source
+       */
+      async function * (source) {
+        yield * ipfs.dag.import(source, {
+          pinRoots,
+          timeout,
+          signal
+        })
+      },
+      /**
+       * @param {AsyncIterable<import('ipfs-core-types/src/dag').ImportResult>} source
+       */
+      async function * (source) {
+        for await (const res of source) {
+          yield {
+            Root: {
+              Cid: {
+                '/': res.root.cid.toString()
+              },
+              PinErrorMsg: res.root.pinErrorMsg
+            }
+          }
+        }
+      }
+    ), {
+      onError (err) {
+        err.message = 'Failed to import DAG: ' + err.message
+      },
+      onEnd () {
+        if (!filesParsed) {
+          throw Boom.badRequest("File argument 'data' is required.")
+        }
+      }
+    })
   }
 }

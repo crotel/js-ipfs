@@ -44,13 +44,13 @@ An optional object which may have the following keys:
 
 | Type | Description |
 | -------- | -------- |
-| `Promise<Block>` | A [Block][block] type object, containing both the data and the hash of the block |
+| `Promise<Uint8Array>` | A Uint8Array containing the data of the block |
 
 ### Example
 
 ```JavaScript
 const block = await ipfs.block.get(cid)
-console.log(block.data)
+console.log(block)
 ```
 
 A great source of [examples][] can be found in the tests for this API.
@@ -71,7 +71,6 @@ An optional object which may have the following keys:
 
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
-| cid  | [CID][] | `undefined` | A CID to store the block under |
 | format | `String` | `'dag-pb'` | The codec to use to create the CID |
 | mhtype | `String` | `sha2-256` | The hashing algorithm to use to create the CID |
 | mhlen | `Number` | | |
@@ -105,9 +104,10 @@ console.log(block.cid.toString())
 // the CID of the object
 
 // With custom format and hashtype through CID
-const CID = require('cids')
+import { CID } from 'multiformats/cid'
+import * as dagPB from '@ipld/dag-pb'
 const buf = new TextEncoder().encode('another serialized object')
-const cid = new CID(1, 'dag-pb', multihash)
+const cid = CID.createV1(dagPB.code, multihash)
 
 const block = await ipfs.block.put(blob, cid)
 
@@ -211,7 +211,7 @@ the returned object has the following keys:
 
 ```JavaScript
 const multihashStr = 'QmQULBtTjNcMwMr4VMNknnVv3RpytrLSdgpvMcTnfNhrBJ'
-const cid = new CID(multihashStr)
+const cid = CID.parse(multihashStr)
 
 const stats = await ipfs.block.stat(cid)
 console.log(stats.cid.toString())

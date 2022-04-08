@@ -1,23 +1,21 @@
-'use strict'
-
-const { getPubsubRouting } = require('./utils')
-const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
+import { getPubsubRouting } from './utils.js'
+import { withTimeoutOption } from 'ipfs-core-utils/with-timeout-option'
 
 /**
  * @param {Object} config
- * @param {import('../../ipns')} config.ipns
+ * @param {import('../../ipns').IPNSAPI} config.ipns
  * @param {import('../../../types').Options} config.options
  */
-module.exports = ({ ipns, options }) => {
+export function createState ({ ipns, options }) {
   const experimental = options.EXPERIMENTAL
 
   /**
-   * @type {import('ipfs-core-types/src/name/pubsub').API["state"]}
+   * @type {import('ipfs-core-types/src/name/pubsub').API<{}>["state"]}
    */
   async function state (_options = {}) { // eslint-disable-line require-await
     try {
       return { enabled: Boolean(getPubsubRouting(ipns, experimental)) }
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       return { enabled: false }
     }
   }

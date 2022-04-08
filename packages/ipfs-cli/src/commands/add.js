@@ -1,22 +1,23 @@
 /* eslint-disable complexity */
-'use strict'
 
-const { promisify } = require('util')
-// @ts-ignore no types
-const getFolderSize = promisify(require('get-folder-size'))
-// @ts-ignore no types
-const byteman = require('byteman')
-const mh = require('multihashing-async').multihash
-const multibase = require('multibase')
-const {
+import { promisify } from 'util'
+// @ts-expect-error no types
+import getFolderSizeCb from 'get-folder-size'
+// @ts-expect-error no types
+import byteman from 'byteman'
+import {
   createProgressBar,
   coerceMtime,
   coerceMtimeNsecs,
   stripControlCharacters
-} = require('../utils')
-const { cidToString } = require('ipfs-core-utils/src/cid')
-const globSource = require('ipfs-utils/src/files/glob-source')
-const { default: parseDuration } = require('parse-duration')
+} from '../utils.js'
+import globSource from 'ipfs-utils/src/files/glob-source.js'
+import parseDuration from 'parse-duration'
+import merge from 'it-merge'
+import fs from 'fs'
+import path from 'path'
+
+const getFolderSize = promisify(getFolderSizeCb)
 
 /**
  * @param {string[]} paths
@@ -26,7 +27,65 @@ async function getTotalBytes (paths) {
   return sizes.reduce((total, size) => total + size, 0)
 }
 
-module.exports = {
+/**
+ * @param {string} target
+ * @param {object} options
+ * @param {boolean} [options.recursive]
+ * @param {boolean} [options.hidden]
+ * @param {boolean} [options.preserveMode]
+ * @param {boolean} [options.preserveMtime]
+ * @param {number} [options.mode]
+ * @param {import('ipfs-unixfs').MtimeLike} [options.mtime]
+ */
+async function * getSource (target, options = {}) {
+  const absolutePath = path.resolve(target)
+  const stats = await fs.promises.stat(absolutePath)
+
+  if (stats.isFile()) {
+    let mtime = options.mtime
+    let mode = options.mode
+
+    if (options.preserveMtime) {
+      mtime = stats.mtime
+    }
+
+    if (options.preserveMode) {
+      mode = stats.mode
+    }
+
+    yield {
+      path: path.basename(target),
+      content: fs.createReadStream(absolutePath),
+      mtime,
+      mode
+    }
+
+    return
+  }
+
+  const dirName = path.basename(absolutePath)
+
+  let pattern = '*'
+
+  if (options.recursive) {
+    pattern = '**/*'
+  }
+
+  for await (const content of globSource(target, pattern, {
+    hidden: options.hidden,
+    preserveMode: options.preserveMode,
+    preserveMtime: options.preserveMtime,
+    mode: options.mode,
+    mtime: options.mtime
+  })) {
+    yield {
+      ...content,
+      path: `${dirName}${content.path}`
+    }
+  }
+}
+
+export default {
   command: 'add [file...]',
 
   describe: 'Add a file to IPFS using the UnixFS data format',
@@ -95,11 +154,10 @@ module.exports = {
     'cid-base': {
       describe: 'Number base to display CIDs in.',
       type: 'string',
-      choices: Object.keys(multibase.names)
+      default: 'base58btc'
     },
     hash: {
       type: 'string',
-      choices: Object.keys(mh.names),
       describe: 'Hash function to use. Will set CID version to 1 if used. (experimental)',
       default: 'sha2-256'
     },
@@ -171,10 +229,10 @@ module.exports = {
    * @param {import('../types').Context} argv.ctx
    * @param {boolean} argv.trickle
    * @param {number} argv.shardSplitThreshold
-   * @param {import('cids').CIDVersion} argv.cidVersion
+   * @param {import('multiformats/cid').CIDVersion} argv.cidVersion
    * @param {boolean} argv.rawLeaves
    * @param {boolean} argv.onlyHash
-   * @param {import('multihashes').HashName} argv.hash
+   * @param {string} argv.hash
    * @param {boolean} argv.wrapWithDirectory
    * @param {boolean} argv.pin
    * @param {string} argv.chunker
@@ -194,7 +252,7 @@ module.exports = {
    * @param {boolean} argv.preserveMode
    * @param {boolean} argv.preserveMtime
    * @param {number} argv.mode
-   * @param {import('multibase').BaseName} argv.cidBase
+   * @param {string} argv.cidBase
    * @param {boolean} argv.enableShardingExperiment
    */
   async handler ({
@@ -290,14 +348,14 @@ module.exports = {
     }
 
     const source = file
-      ? globSource(file, {
-        recursive,
+      ? merge(...file.map(file => getSource(file, {
         hidden,
+        recursive,
         preserveMode,
         preserveMtime,
         mode,
         mtime: date
-      })
+      })))
       : [{
           content: getStdin(),
           mode,
@@ -305,6 +363,7 @@ module.exports = {
         }] // Pipe to ipfs.add tagging with mode and mtime
 
     let finalCid
+    const base = await ipfs.bases.getBase(cidBase)
 
     try {
       for await (const { cid, path } of ipfs.addAll(source, options)) {
@@ -318,7 +377,7 @@ module.exports = {
         }
 
         const pathStr = stripControlCharacters(path)
-        const cidStr = cidToString(cid, { base: cidBase })
+        const cidStr = cid.toString(base.encoder)
         let message = cidStr
 
         if (!quiet) {
@@ -328,7 +387,7 @@ module.exports = {
 
         log(message)
       }
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       // Tweak the error message and add more relevant info for the CLI
       if (err.code === 'ERR_DIR_NON_RECURSIVE') {
         err.message = `'${err.path}' is a directory, use the '-r' flag to specify directories`
@@ -342,7 +401,7 @@ module.exports = {
     }
 
     if (quieter && finalCid) {
-      log(cidToString(finalCid, { base: cidBase }))
+      log(finalCid.toString(base.encoder))
     }
   }
 }

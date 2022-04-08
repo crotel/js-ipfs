@@ -1,15 +1,29 @@
-'use strict'
+import Joi from '../../utils/joi.js'
+import all from 'it-all'
+import { multipartRequestParser } from '../../utils/multipart-request-parser.js'
+import Boom from '@hapi/boom'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import { streamResponse } from '../../utils/stream-response.js'
+import pushable from 'it-pushable'
+import { base64url } from 'multiformats/bases/base64'
 
-const Joi = require('../../utils/joi')
-const all = require('it-all')
-const multipart = require('../../utils/multipart-request-parser')
-const Boom = require('@hapi/boom')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const uint8ArrayFromString = require('uint8arrays/from-string')
-const streamResponse = require('../../utils/stream-response')
-const pushable = require('it-pushable')
+const preDecodeTopicFromHttpRpc = {
+  assign: 'topic',
+  /**
+   * @param {import('../../types').Request} request
+   * @param {import('@hapi/hapi').ResponseToolkit} _h
+   */
+  method: async (request, _h) => {
+    try {
+      return uint8ArrayToString(base64url.decode(request.query.topic))
+    } catch (/** @type {any} */ err) {
+      throw Boom.boomify(err, { message: `Failed to decode topic  from HTTP RPC form ${request.query.topic}` })
+    }
+  }
+}
 
-exports.subscribe = {
+export const subscribeResource = {
   options: {
     timeout: {
       socket: false
@@ -26,7 +40,8 @@ exports.subscribe = {
           override: true,
           ignoreUndefined: true
         })
-    }
+    },
+    pre: [preDecodeTopicFromHttpRpc]
   },
   /**
    * @param {import('../../types').Request} request
@@ -42,8 +57,8 @@ exports.subscribe = {
           ipfs
         }
       },
-      query: {
-        topic
+      pre: {
+        topic // decoded version created by preDecodeTopicFromHttpRpc
       }
     } = request
 
@@ -59,10 +74,10 @@ exports.subscribe = {
        */
       const handler = (msg) => {
         output.push({
-          from: uint8ArrayToString(uint8ArrayFromString(msg.from, 'base58btc'), 'base64pad'),
-          data: uint8ArrayToString(msg.data, 'base64pad'),
-          seqno: uint8ArrayToString(msg.seqno, 'base64pad'),
-          topicIDs: msg.topicIDs
+          from: msg.from, // TODO: switch to PeerId.parse(msg.from).toString() when go-ipfs defaults to CIDv1
+          data: base64url.encode(msg.data),
+          seqno: base64url.encode(msg.seqno),
+          topicIDs: msg.topicIDs.map(t => base64url.encode(uint8ArrayFromString(t)))
         })
       }
 
@@ -86,13 +101,13 @@ exports.subscribe = {
   }
 }
 
-exports.publish = {
+export const publishResource = {
   options: {
     payload: {
       parse: false,
       output: 'stream'
     },
-    pre: [{
+    pre: [preDecodeTopicFromHttpRpc, {
       assign: 'data',
       /**
        * @param {import('../../types').Request} request
@@ -105,7 +120,7 @@ exports.publish = {
 
         let data
 
-        for await (const part of multipart(request.raw.req)) {
+        for await (const part of multipartRequestParser(request.raw.req)) {
           if (part.type === 'file') {
             data = Buffer.concat(await all(part.content))
           }
@@ -149,10 +164,10 @@ exports.publish = {
         }
       },
       pre: {
+        topic,
         data
       },
       query: {
-        topic,
         timeout
       }
     } = request
@@ -162,7 +177,7 @@ exports.publish = {
         signal,
         timeout
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.boomify(err, { message: `Failed to publish to topic ${topic}` })
     }
 
@@ -170,7 +185,7 @@ exports.publish = {
   }
 }
 
-exports.ls = {
+export const lsResource = {
   options: {
     validate: {
       options: {
@@ -207,15 +222,15 @@ exports.ls = {
         signal,
         timeout
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       throw Boom.boomify(err, { message: 'Failed to list subscriptions' })
     }
 
-    return h.response({ Strings: subscriptions })
+    return h.response({ Strings: subscriptions.map(s => base64url.encode(uint8ArrayFromString(s))) })
   }
 }
 
-exports.peers = {
+export const peersResource = {
   options: {
     validate: {
       options: {
@@ -230,7 +245,8 @@ exports.peers = {
           override: true,
           ignoreUndefined: true
         })
-    }
+    },
+    pre: [preDecodeTopicFromHttpRpc]
   },
   /**
    * @param {import('../../types').Request} request
@@ -246,8 +262,10 @@ exports.peers = {
           ipfs
         }
       },
+      pre: {
+        topic
+      },
       query: {
-        topic,
         timeout
       }
     } = request
@@ -258,7 +276,7 @@ exports.peers = {
         signal,
         timeout
       })
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       const message = topic
         ? `Failed to find peers subscribed to ${topic}: ${err}`
         : `Failed to find peers: ${err}`

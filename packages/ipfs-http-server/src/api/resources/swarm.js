@@ -1,8 +1,6 @@
-'use strict'
+import Joi from '../../utils/joi.js'
 
-const Joi = require('../../utils/joi')
-
-exports.peers = {
+export const peersResource = {
   options: {
     validate: {
       options: {
@@ -61,7 +59,7 @@ exports.peers = {
   }
 }
 
-exports.addrs = {
+export const addrsResource = {
   options: {
     validate: {
       options: {
@@ -106,7 +104,7 @@ exports.addrs = {
   }
 }
 
-exports.localAddrs = {
+export const localAddrsResource = {
   options: {
     validate: {
       options: {
@@ -148,7 +146,7 @@ exports.localAddrs = {
   }
 }
 
-exports.connect = {
+export const connectResource = {
   options: {
     validate: {
       options: {
@@ -185,10 +183,25 @@ exports.connect = {
       }
     } = request
 
+    // dialing another peer returns after the connection is opened
+    // but before identify completes. 'abort' is emitted by the signal
+    // when the client disconnects, but we want Identify to complete
+    // so don't forward on the abort event if we've successfully connected.
+    const controller = new AbortController()
+    let connected = false
+
+    signal.addEventListener('abort', () => {
+      if (!connected) {
+        controller.abort()
+      }
+    })
+
     await ipfs.swarm.connect(addr, {
-      signal,
+      signal: controller.signal,
       timeout
     })
+
+    connected = true
 
     return h.response({
       Strings: [`connect ${addr} success`]
@@ -196,7 +209,7 @@ exports.connect = {
   }
 }
 
-exports.disconnect = {
+export const disconnectResource = {
   options: {
     validate: {
       options: {

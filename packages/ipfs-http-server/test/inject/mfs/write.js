@@ -1,12 +1,11 @@
 /* eslint-env mocha */
-'use strict'
 
-const { expect } = require('aegir/utils/chai')
-const http = require('../../utils/http')
-const sinon = require('sinon')
-const FormData = require('form-data')
-const streamToPromise = require('stream-to-promise')
-const { AbortSignal } = require('native-abort-controller')
+import { expect } from 'aegir/utils/chai.js'
+import { http } from '../../utils/http.js'
+import { matchIterable } from '../../utils/match-iterable.js'
+import sinon from 'sinon'
+import FormData from 'form-data'
+import streamToPromise from 'stream-to-promise'
 
 const defaultOptions = {
   offset: undefined,
@@ -54,10 +53,6 @@ async function send (text, options = {}) {
     headers: form.getHeaders(),
     payload: await streamToPromise(form)
   }
-}
-
-function matchIterable () {
-  return sinon.match((thing) => Boolean(thing[Symbol.asyncIterator]) || Boolean(thing[Symbol.iterator]))
 }
 
 describe('/files/write', () => {

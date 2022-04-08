@@ -1,30 +1,31 @@
 /* eslint-env mocha */
-'use strict'
 
-const uint8ArrayFromString = require('uint8arrays/from-string')
-const { fixtures, clearPins, expectPinned, expectNotPinned, pinTypes } = require('./utils')
-const { getDescribe, getIt, expect } = require('../utils/mocha')
-const all = require('it-all')
-const drain = require('it-drain')
-const {
-  DAGNode
-} = require('ipld-dag-pb')
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import { fixtures, clearPins, expectPinned, expectNotPinned, pinTypes } from './utils.js'
+import { expect } from 'aegir/utils/chai.js'
+import { getDescribe, getIt } from '../utils/mocha.js'
+import all from 'it-all'
+import drain from 'it-drain'
 
-/** @typedef { import("ipfsd-ctl/src/factory") } Factory */
 /**
- * @param {Factory} common
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
+
+/**
+ * @param {Factory} factory
  * @param {Object} options
  */
-module.exports = (common, options) => {
+export function testAdd (factory, options) {
   const describe = getDescribe(options)
   const it = getIt(options)
 
   describe('.pin.add', function () {
     this.timeout(50 * 1000)
 
+    /** @type {import('ipfs-core-types').IPFS} */
     let ipfs
     before(async () => {
-      ipfs = (await common.spawn()).api
+      ipfs = (await factory.spawn()).api
 
       await drain(
         ipfs.addAll(
@@ -46,7 +47,7 @@ module.exports = (common, options) => {
       )
     })
 
-    after(() => common.clean())
+    after(() => factory.clean())
 
     beforeEach(() => {
       return clearPins(ipfs)
@@ -97,32 +98,34 @@ module.exports = (common, options) => {
       return expect(ipfs.pin.add(fixtures.directory.cid, {
         recursive: false
       }))
-        .to.eventually.be.rejected()
-        .with(/already pinned recursively/)
+        .to.eventually.be.rejectedWith(/already pinned recursively/)
     })
 
-    it('should fail to pin a hash not in datastore', function () {
+    it('should fail to pin a hash not in datastore', async function () {
+      // @ts-ignore this is mocha
       this.slow(3 * 1000)
+      // @ts-ignore this is mocha
       this.timeout(5 * 1000)
       const falseHash = `${`${fixtures.directory.cid}`.slice(0, -2)}ss`
-      return expect(ipfs.pin.add(falseHash, { timeout: '2s' }))
-        .to.eventually.be.rejected()
-        // TODO: http api TimeoutErrors do not have this property
-        // .with.a.property('code').that.equals('ERR_TIMEOUT')
+
+      await expect(ipfs.pin.add(falseHash, { timeout: '2s' }))
+        .to.eventually.be.rejected().with.property('name', 'TimeoutError')
     })
 
     it('needs all children in datastore to pin recursively', async function () {
+      // @ts-ignore this is mocha
       this.slow(3 * 1000)
+      // @ts-ignore this is mocha
       this.timeout(5 * 1000)
       await all(ipfs.block.rm(fixtures.directory.files[0].cid))
 
       await expect(ipfs.pin.add(fixtures.directory.cid, { timeout: '2s' }))
-        .to.eventually.be.rejected()
+        .to.eventually.be.rejected().with.property('name', 'TimeoutError')
     })
 
     it('should pin dag-cbor', async () => {
       const cid = await ipfs.dag.put({}, {
-        format: 'dag-cbor',
+        storeCodec: 'dag-cbor',
         hashAlg: 'sha2-256'
       })
 
@@ -138,7 +141,7 @@ module.exports = (common, options) => {
 
     it('should pin raw', async () => {
       const cid = await ipfs.dag.put(new Uint8Array(0), {
-        format: 'raw',
+        storeCodec: 'raw',
         hashAlg: 'sha2-256'
       })
 
@@ -153,14 +156,17 @@ module.exports = (common, options) => {
     })
 
     it('should pin dag-cbor with dag-pb child', async () => {
-      const child = await ipfs.dag.put(new DAGNode(uint8ArrayFromString(`${Math.random()}`)), {
-        format: 'dag-pb',
+      const child = await ipfs.dag.put({
+        Data: uint8ArrayFromString(`${Math.random()}`),
+        Links: []
+      }, {
+        storeCodec: 'dag-pb',
         hashAlg: 'sha2-256'
       })
       const parent = await ipfs.dag.put({
         child
       }, {
-        format: 'dag-cbor',
+        storeCodec: 'dag-cbor',
         hashAlg: 'sha2-256'
       })
 

@@ -1,11 +1,9 @@
 /* eslint-disable no-unreachable */
-'use strict'
 
-// @ts-ignore
-const TimeoutController = require('timeout-abort-controller')
-const { anySignal } = require('any-signal')
-const { default: parseDuration } = require('parse-duration')
-const { TimeoutError } = require('./errors')
+import { TimeoutController } from 'timeout-abort-controller'
+import { anySignal } from 'any-signal'
+import parseDuration from 'parse-duration'
+import { TimeoutError } from './errors.js'
 
 /**
  * @template {any[]} Args
@@ -14,7 +12,7 @@ const { TimeoutError } = require('./errors')
  * @param {number} [optionsArgIndex]
  * @returns {(...args:Args) => R}
  */
-function withTimeoutOption (fn, optionsArgIndex) {
+export function withTimeoutOption (fn, optionsArgIndex) {
   // eslint-disable-next-line
   return /** @returns {R} */(/** @type {Args} */...args) => {
     const options = args[optionsArgIndex == null ? args.length - 1 : optionsArgIndex]
@@ -73,7 +71,7 @@ function withTimeoutOption (fn, optionsArgIndex) {
 
             yield value
           }
-        } catch (err) {
+        } catch (/** @type {any} */ err) {
           maybeThrowTimeoutError()
 
           throw err
@@ -95,7 +93,7 @@ function withTimeoutOption (fn, optionsArgIndex) {
         maybeThrowTimeoutError()
 
         return res
-      } catch (err) {
+      } catch (/** @type {any} */ err) {
         maybeThrowTimeoutError()
 
         throw err
@@ -105,5 +103,3 @@ function withTimeoutOption (fn, optionsArgIndex) {
     })()
   }
 }
-
-module.exports = withTimeoutOption

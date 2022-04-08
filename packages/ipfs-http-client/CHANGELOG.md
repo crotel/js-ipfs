@@ -3,6 +3,250 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [55.0.0](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@54.0.2...ipfs-http-client@55.0.0) (2021-12-15)
+
+
+### Bug Fixes
+
+* **pubsub:** multibase in pubsub http rpc ([#3922](https://github.com/ipfs/js-ipfs/issues/3922)) ([6eeaca4](https://github.com/ipfs/js-ipfs/commit/6eeaca452c36fa13be42d704575c577e4ca938f1))
+* return nested value from dag.get ([#3966](https://github.com/ipfs/js-ipfs/issues/3966)) ([45ac973](https://github.com/ipfs/js-ipfs/commit/45ac9730d6484e8324acfbc3579fce052b8452d7)), closes [#3957](https://github.com/ipfs/js-ipfs/issues/3957)
+
+
+### chore
+
+* Bump @ipld/dag-cbor to v7 ([#3977](https://github.com/ipfs/js-ipfs/issues/3977)) ([73476f5](https://github.com/ipfs/js-ipfs/commit/73476f55e39ecfb01eb2b4880637aad658f51bc2))
+
+
+### Features
+
+* dht client ([#3947](https://github.com/ipfs/js-ipfs/issues/3947)) ([62d8ecb](https://github.com/ipfs/js-ipfs/commit/62d8ecbc723e693a2544e69172d99c576d187c23))
+* update DAG API to match go-ipfs@0.10 changes ([#3917](https://github.com/ipfs/js-ipfs/issues/3917)) ([38c01be](https://github.com/ipfs/js-ipfs/commit/38c01be03b4fd5f401cd9b698cfdb4237d835b01))
+
+
+### BREAKING CHANGES
+
+* **pubsub:** We had to make breaking changes to `pubsub` commands sent over HTTP RPC  to fix data corruption caused by topic names and payload bytes that included `\n`. More details in https://github.com/ipfs/go-ipfs/issues/7939 and https://github.com/ipfs/go-ipfs/pull/8183 
+* On decode of CBOR blocks, `undefined` values will be coerced to `null`
+* `ipfs.dag.put` no longer accepts a `format` arg, it is now `storeCodec` and `inputCodec`.  `'json'` has become `'dag-json'`, `'cbor'` has become `'dag-cbor'` and so on
+* The DHT API has been refactored to return async iterators of query events
+
+
+
+
+
+### [56.0.2](https://www.github.com/ipfs/js-ipfs/compare/ipfs-http-client-v56.0.1...ipfs-http-client-v56.0.2) (2022-03-01)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.1 to ^0.10.2
+    * ipfs-core-utils bumped from ^0.14.1 to ^0.14.2
+
+### [56.0.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-http-client-v56.0.0...ipfs-http-client-v56.0.1) (2022-02-06)
+
+
+### Bug Fixes
+
+* **dag:** replace custom dag walk with multiformats/traversal ([#3950](https://www.github.com/ipfs/js-ipfs/issues/3950)) ([596b1f4](https://www.github.com/ipfs/js-ipfs/commit/596b1f48a014083b1736e4ad7e746c652d2583b1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.0 to ^0.10.1
+    * ipfs-core-utils bumped from ^0.14.0 to ^0.14.1
+
+## [56.0.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-http-client-v55.0.0...ipfs-http-client-v56.0.0) (2022-01-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* peerstore methods are now all async, the repo is migrated to v12
+* node 15+ is required
+
+### Features
+
+* add support for dag-jose codec ([#4028](https://www.github.com/ipfs/js-ipfs/issues/4028)) ([fbe1492](https://www.github.com/ipfs/js-ipfs/commit/fbe1492395ad98e620a872208530a3f8f61535a9))
+* libp2p async peerstore ([#4018](https://www.github.com/ipfs/js-ipfs/issues/4018)) ([a6b201a](https://www.github.com/ipfs/js-ipfs/commit/a6b201af2c3697430ab0ebe002dd573d185f1ac0))
+
+
+### Bug Fixes
+
+* remove abort-controller deps ([#4015](https://www.github.com/ipfs/js-ipfs/issues/4015)) ([902e887](https://www.github.com/ipfs/js-ipfs/commit/902e887e1acac87f607324fa7cb5ad4b14aefcf3))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.9.0 to ^0.10.0
+    * ipfs-core-utils bumped from ^0.13.0 to ^0.14.0
+
+## [54.0.2](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@54.0.1...ipfs-http-client@54.0.2) (2021-11-24)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+## [54.0.1](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@54.0.0...ipfs-http-client@54.0.1) (2021-11-19)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+# [54.0.0](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@53.0.1...ipfs-http-client@54.0.0) (2021-11-12)
+
+
+### Bug Fixes
+
+* do not accept single items for ipfs.add ([#3900](https://github.com/ipfs/js-ipfs/issues/3900)) ([04e3cf3](https://github.com/ipfs/js-ipfs/commit/04e3cf3f46b585c4644cba70516f375e95361f52))
+
+
+### BREAKING CHANGES
+
+* errors will now be thrown if multiple items are passed to `ipfs.add` or single items to `ipfs.addAll` (n.b. you can still pass a list of a single item to `ipfs.addAll`)
+
+
+
+
+
+## [53.0.1](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@53.0.0...ipfs-http-client@53.0.1) (2021-09-28)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+# [53.0.0](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.5...ipfs-http-client@53.0.0) (2021-09-24)
+
+
+### Features
+
+* pull in new globSource ([#3889](https://github.com/ipfs/js-ipfs/issues/3889)) ([be4a542](https://github.com/ipfs/js-ipfs/commit/be4a5428ebc4b05a2edd9a91bf9df6416c1a8c2b))
+* switch to esm ([#3879](https://github.com/ipfs/js-ipfs/issues/3879)) ([9a40109](https://github.com/ipfs/js-ipfs/commit/9a40109632e5b4837eb77a2f57dbc77fbf1fe099))
+
+
+### BREAKING CHANGES
+
+* the globSource api has changed from `globSource(dir, opts)` to `globSource(dir, pattern, opts)`
+* There are no default exports and everything is now dual published as ESM/CJS
+
+
+
+
+
+## [52.0.5](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.4...ipfs-http-client@52.0.5) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+## [52.0.4](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.3...ipfs-http-client@52.0.4) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+## [52.0.3](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.2...ipfs-http-client@52.0.3) (2021-09-02)
+
+
+### Bug Fixes
+
+* declare types in .ts files ([#3840](https://github.com/ipfs/js-ipfs/issues/3840)) ([eba5fe6](https://github.com/ipfs/js-ipfs/commit/eba5fe6832858107b3e1ae02c99de674622f12b4))
+* remove client-side timeout from http rpc calls ([#3178](https://github.com/ipfs/js-ipfs/issues/3178)) ([f11220e](https://github.com/ipfs/js-ipfs/commit/f11220e00a12afed5ebbbd8b4c5134595aea735d)), closes [#3161](https://github.com/ipfs/js-ipfs/issues/3161)
+* remove use of instanceof for CID class ([#3847](https://github.com/ipfs/js-ipfs/issues/3847)) ([ebbb12d](https://github.com/ipfs/js-ipfs/commit/ebbb12db523c53ce8e4ddae5266cd9acb3504431))
+
+
+
+
+
+## [52.0.2](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.1...ipfs-http-client@52.0.2) (2021-08-25)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+## [52.0.1](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@52.0.0...ipfs-http-client@52.0.1) (2021-08-17)
+
+
+### Bug Fixes
+
+* pin nanoid version ([#3807](https://github.com/ipfs/js-ipfs/issues/3807)) ([474523a](https://github.com/ipfs/js-ipfs/commit/474523ab8702729f697843d433a7a08baf2d101f))
+
+
+
+
+
+# [52.0.0](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@51.0.1...ipfs-http-client@52.0.0) (2021-08-11)
+
+
+### Bug Fixes
+
+* return rate in/out as number ([#3798](https://github.com/ipfs/js-ipfs/issues/3798)) ([2f3df7a](https://github.com/ipfs/js-ipfs/commit/2f3df7a70fe94d6bdf20947854dc9d0b88cb759a)), closes [#3782](https://github.com/ipfs/js-ipfs/issues/3782)
+
+
+### Features
+
+* ed25519 keys by default ([#3693](https://github.com/ipfs/js-ipfs/issues/3693)) ([33fa734](https://github.com/ipfs/js-ipfs/commit/33fa7341c3baaf0926d887c071cc6fbce5ac49a8))
+* make ipfs.get output tarballs ([#3785](https://github.com/ipfs/js-ipfs/issues/3785)) ([1ad6001](https://github.com/ipfs/js-ipfs/commit/1ad60018d39d5b46c484756631e30e1989fd8eba))
+
+
+### BREAKING CHANGES
+
+* rateIn/rateOut are returned as numbers
+* the output type of `ipfs.get` has changed and the `recursive` option has been removed from `ipfs.ls` since it was not supported everywhere
+
+
+
+
+
+## [51.0.1](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@51.0.0...ipfs-http-client@51.0.1) (2021-07-30)
+
+**Note:** Version bump only for package ipfs-http-client
+
+
+
+
+
+# [51.0.0](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@50.1.2...ipfs-http-client@51.0.0) (2021-07-27)
+
+
+### Bug Fixes
+
+* export ipfs http client type and use option extension for client ([#3763](https://github.com/ipfs/js-ipfs/issues/3763)) ([31bddd4](https://github.com/ipfs/js-ipfs/commit/31bddd40ab85848cd283ec66001fb7555b4f2d88)), closes [#3749](https://github.com/ipfs/js-ipfs/issues/3749) [#3736](https://github.com/ipfs/js-ipfs/issues/3736)
+
+
+### Features
+
+* implement dag import/export ([#3728](https://github.com/ipfs/js-ipfs/issues/3728)) ([700765b](https://github.com/ipfs/js-ipfs/commit/700765be2634fa5d2d71d8b87cf68c9cd328d2c4)), closes [#2953](https://github.com/ipfs/js-ipfs/issues/2953) [#2745](https://github.com/ipfs/js-ipfs/issues/2745)
+* upgrade to the new multiformats ([#3556](https://github.com/ipfs/js-ipfs/issues/3556)) ([d13d15f](https://github.com/ipfs/js-ipfs/commit/d13d15f022a87d04a35f0f7822142f9cb898479c))
+
+
+### BREAKING CHANGES
+
+* ipld-formats no longer supported, use multiformat BlockCodecs instead
+
+Co-authored-by: Rod Vagg <rod@vagg.org>
+Co-authored-by: achingbrain <alex@achingbrain.net>
+
+
+
+
+
 ## [50.1.2](https://github.com/ipfs/js-ipfs/compare/ipfs-http-client@50.1.1...ipfs-http-client@50.1.2) (2021-06-18)
 
 **Note:** Version bump only for package ipfs-http-client
@@ -560,7 +804,7 @@ There are significant and breaking API changes in this release. Please see the [
 * `name.resolve` now returns an async iterable. It yields increasingly more accurate resolved values as they are discovered until the best value is selected from the quorum of 16. The "best" resolved value is the last item yielded from the iterator. If you are interested only in this best value you could use `it-last` to extract it like so:
 
     ```js
-    const last = require('it-last')
+    import last from 'it-last'
     await last(ipfs.name.resolve('/ipns/QmHash'))
     ```
 

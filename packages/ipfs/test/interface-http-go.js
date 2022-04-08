@@ -1,8 +1,7 @@
 /* eslint-env mocha */
-'use strict'
 
-const tests = require('interface-ipfs-core')
-const factory = require('./utils/factory')
+import * as tests from 'interface-ipfs-core'
+import { factory } from './utils/factory.js'
 const isWindows = globalThis.process && globalThis.process.platform && globalThis.process.platform === 'win32'
 const isFirefox = globalThis.navigator?.userAgent?.toLowerCase().includes('firefox')
 
@@ -94,12 +93,7 @@ describe('interface-ipfs-core over ipfs-http-client tests against go-ipfs', () =
     ]
   })
 
-  tests.block(commonFactory, {
-    skip: [{
-      name: 'should get a block added as CIDv1 with a CIDv0',
-      reason: 'go-ipfs does not support the `version` param'
-    }]
-  })
+  tests.block(commonFactory)
 
   tests.bootstrap(commonFactory)
 
@@ -123,27 +117,14 @@ describe('interface-ipfs-core over ipfs-http-client tests against go-ipfs', () =
 
   tests.dag(commonFactory, {
     skip: [
-      // dag.tree
-      {
-        name: 'tree',
-        reason: 'TODO vmx 2018-02-22: Currently the tree API is not exposed in go-ipfs'
-      },
       // dag.get:
-      {
-        name: 'should get a dag-pb node local value',
-        reason: 'FIXME vmx 2018-02-22: Currently not supported in go-ipfs, it might be possible once https://github.com/ipfs/go-ipfs/issues/4728 is done'
-      },
-      {
-        name: 'should get dag-pb value via dag-cbor node',
-        reason: 'FIXME vmx 2018-02-22: Currently not supported in go-ipfs, it might be possible once https://github.com/ipfs/go-ipfs/issues/4728 is done'
-      },
-      {
-        name: 'should get by CID with path option',
-        reason: 'FIXME vmx 2018-02-22: Currently not supported in go-ipfs, it might be possible once https://github.com/ipfs/go-ipfs/issues/4728 is done'
-      },
       {
         name: 'should get only a CID, due to resolving locally only',
         reason: 'FIXME: go-ipfs does not support localResolve option'
+      },
+      {
+        name: 'should get a node added as CIDv0 with a CIDv1',
+        reason: 'go-ipfs doesn\'t use CIDv0 for DAG API anymore'
       }
     ]
   })
@@ -524,14 +505,7 @@ describe('interface-ipfs-core over ipfs-http-client tests against go-ipfs', () =
     ipfsOptions: {
       offline: true
     }
-  }), {
-    skip: [
-      {
-        name: 'should resolve a record from peerid as cidv1 in base32',
-        reason: 'TODO not implemented in go-ipfs yet: https://github.com/ipfs/go-ipfs/issues/5287'
-      }
-    ]
-  })
+  }))
 
   tests.namePubsub(factory({
     type: 'go',
@@ -616,8 +590,6 @@ describe('interface-ipfs-core over ipfs-http-client tests against go-ipfs', () =
     ]
   })
 
-  tests.pin.remote(commonFactory)
-
   tests.ping(commonFactory, {
     skip: [
       {
@@ -634,16 +606,21 @@ describe('interface-ipfs-core over ipfs-http-client tests against go-ipfs', () =
       args: ['--enable-pubsub-experiment']
     }
   }), {
-    skip: isWindows
-      ? [{
-          name: 'should send/receive 100 messages',
-          reason: 'FIXME https://github.com/ipfs/interface-ipfs-core/pull/188#issuecomment-354673246 and https://github.com/ipfs/go-ipfs/issues/4778'
-        },
-        {
-          name: 'should receive multiple messages',
-          reason: 'FIXME https://github.com/ipfs/interface-ipfs-core/pull/188#issuecomment-354673246 and https://github.com/ipfs/go-ipfs/issues/4778'
-        }]
-      : null
+    skip: [{
+      name: 'should receive messages from a different node on lots of topics',
+      reason: 'HTTP clients cannot hold this many connections open'
+    }].concat(
+      isWindows
+        ? [{
+            name: 'should send/receive 100 messages',
+            reason: 'FIXME https://github.com/ipfs/interface-ipfs-core/pull/188#issuecomment-354673246 and https://github.com/ipfs/go-ipfs/issues/4778'
+          },
+          {
+            name: 'should receive multiple messages',
+            reason: 'FIXME https://github.com/ipfs/interface-ipfs-core/pull/188#issuecomment-354673246 and https://github.com/ipfs/go-ipfs/issues/4778'
+          }]
+        : []
+    )
   })
 
   tests.repo(commonFactory)

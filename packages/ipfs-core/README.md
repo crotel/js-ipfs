@@ -18,7 +18,7 @@
 <a href="https://travis-ci.com/ipfs/js-ipfs?branch=master"><img src="https://badgen.net/travis/ipfs/js-ipfs?branch=master" /></a>
 <a href="https://codecov.io/gh/ipfs/js-ipfs"><img src="https://badgen.net/codecov/c/github/ipfs/js-ipfs" /></a>
 <a href="https://bundlephobia.com/result?p=ipfs"><img src="https://badgen.net/bundlephobia/minzip/ipfs"></a>
-<a href="https://david-dm.org/ipfs/js-ipfs?path=packages/ipfs"><img src="https://david-dm.org/ipfs/js-ipfs.svg?style=flat&path=packages/ipfs" /></a>
+<a href="https://david-dm.org/ipfs/js-ipfs?path=packages/ipfs-core"><img src="https://david-dm.org/ipfs/js-ipfs.svg?style=flat&path=packages/ipfs-core" /></a>
 <a href="https://github.com/feross/standard"><img src="https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat"></a>
 <a href=""><img src="https://img.shields.io/badge/npm-%3E%3D6.0.0-orange.svg?style=flat" /></a>
 <a href=""><img src="https://img.shields.io/badge/Node.js-%3E%3D10.0.0-orange.svg?style=flat" /></a>
@@ -34,10 +34,6 @@
 `ipfs-core` is the implementation of the IPFS Core API. It contains all you need to integrate IPFS into your application.
 
 If you want to run IPFS as a standalone daemon process, see the [ipfs](https://github.com/ipfs/js-ipfs/tree/master/packages/ipfs) module.
-
-## Lead Maintainer <!-- omit in toc -->
-
-[Alex Potsides](http://github.com/achingbrain)
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -59,7 +55,7 @@ $ npm install ipfs-core
 Then start a node in your app:
 
 ```javascript
-const IPFS = require('ipfs-core')
+import * as IPFS from 'ipfs-core'
 
 const ipfs = await IPFS.create()
 const { cid } = await ipfs.add('Hello world')
@@ -69,7 +65,7 @@ console.info(cid)
 
 ## Next Steps
 
-* Look into the [examples](/examples) to learn how to spawn an IPFS node in Node.js and in the Browser
+* Look into the [js-ipfs-examples](https://github.com/ipfs-examples/js-ipfs-examples) to learn how to spawn an IPFS node in Node.js and in the Browser
 * Read the [Core API docs](https://github.com/ipfs/js-ipfs/tree/master/docs/core-api) to see what you can do with an IPFS node
 * Visit https://dweb-primer.ipfs.io to learn about IPFS and the concepts that underpin it
 * Head over to https://proto.school to take interactive tutorials that cover core IPFS APIs

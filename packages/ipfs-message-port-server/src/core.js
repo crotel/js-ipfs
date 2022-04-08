@@ -1,16 +1,15 @@
-'use strict'
 
 /* eslint-env browser */
 
-const {
+import {
   decodeIterable,
   encodeIterable,
   decodeCallback
-} = require('ipfs-message-port-protocol/src/core')
-const { decodeCID, encodeCID } = require('ipfs-message-port-protocol/src/cid')
+} from 'ipfs-message-port-protocol/core'
+import { decodeCID, encodeCID } from 'ipfs-message-port-protocol/cid'
 
 /**
- * @typedef {import('cids').CIDVersion} CIDVersion
+ * @typedef {import('multiformats/cid').CIDVersion} CIDVersion
  * @typedef {import('ipfs-core-types').IPFS} IPFS
  * @typedef {import('ipfs-core-types/src/root').AddOptions} AddOptions
  * @typedef {import('ipfs-core-types/src/root').AddAllOptions} AddAllOptions
@@ -47,7 +46,7 @@ const { decodeCID, encodeCID } = require('ipfs-message-port-protocol/src/cid')
  * @typedef {AddAllInput & AddAllOptions} AddAllQuery
  */
 
-exports.CoreService = class CoreService {
+export class CoreService {
   /**
    * @param {IPFS} ipfs
    */
@@ -248,8 +247,8 @@ const matchInput = (input, decode) => {
  * @param {AsyncIterable<AddResult>} out
  */
 const encodeAddAllResult = out => {
-  /** @type {Transferable[]} */
-  const transfer = []
+  /** @type {Set<Transferable>} */
+  const transfer = new Set()
   return {
     data: encodeIterable(out, encodeFileOutput, transfer),
     transfer
@@ -260,8 +259,8 @@ const encodeAddAllResult = out => {
  * @param {AddResult} out
  */
 const encodeAddResult = out => {
-  /** @type {Transferable[]} */
-  const transfer = []
+  /** @type {Set<Transferable>} */
+  const transfer = new Set()
   return {
     data: encodeFileOutput(out, transfer),
     transfer
@@ -272,8 +271,8 @@ const encodeAddResult = out => {
  * @param {AsyncIterable<Uint8Array>} content
  */
 const encodeCatResult = content => {
-  /** @type {Transferable[]} */
-  const transfer = []
+  /** @type {Set<Transferable>} */
+  const transfer = new Set()
   return { data: encodeIterable(content, moveBuffer, transfer), transfer }
 }
 
@@ -281,40 +280,39 @@ const encodeCatResult = content => {
  * @param {AsyncIterable<IPFSEntry>} entries
  */
 const encodeLsResult = entries => {
-  /** @type {Transferable[]} */
-  const transfer = []
+  /** @type {Set<Transferable>} */
+  const transfer = new Set()
   return { data: encodeIterable(entries, encodeLsEntry, transfer), transfer }
 }
 
 /**
  * @param {IPFSEntry} entry
  */
-const encodeLsEntry = ({ depth, name, path, size, cid, type, mode, mtime }) => ({
+const encodeLsEntry = ({ name, path, size, cid, type, mode, mtime }) => ({
   cid: encodeCID(cid),
   type,
   name,
   path,
   mode,
   mtime,
-  size,
-  depth
+  size
 })
 
 /**
  * Adds underlying `ArrayBuffer` to the transfer list.
  *
  * @param {Uint8Array} buffer
- * @param {Transferable[]} transfer
+ * @param {Set<Transferable>} transfer
  * @returns {Uint8Array}
  */
 const moveBuffer = (buffer, transfer) => {
-  transfer.push(buffer.buffer)
+  transfer.add(buffer.buffer)
   return buffer
 }
 
 /**
  * @param {AddResult} file
- * @param {Transferable[]} _transfer
+ * @param {Set<Transferable>} _transfer
  */
 const encodeFileOutput = (file, _transfer) => ({
   ...file,

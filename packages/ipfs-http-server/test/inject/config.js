@@ -1,10 +1,13 @@
 /* eslint-env mocha */
-'use strict'
 
-const { expect } = require('aegir/utils/chai')
-const fs = require('fs')
-const FormData = require('form-data')
-const streamToPromise = require('stream-to-promise')
+import { expect } from 'aegir/utils/chai.js'
+import fs from 'fs'
+import FormData from 'form-data'
+import streamToPromise from 'stream-to-promise'
+import { testHttpMethod } from '../utils/test-http-method.js'
+import { http } from '../utils/http.js'
+import sinon from 'sinon'
+
 const profiles = {
   profile1: {
     description: 'this is profile 1'
@@ -13,10 +16,6 @@ const profiles = {
     description: 'this is profile 2'
   }
 }
-const testHttpMethod = require('../utils/test-http-method')
-const http = require('../utils/http')
-const sinon = require('sinon')
-const { AbortSignal } = require('native-abort-controller')
 
 const defaultOptions = {
   signal: sinon.match.instanceOf(AbortSignal),

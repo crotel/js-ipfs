@@ -1,7 +1,5 @@
-'use strict'
-
-const CID = require('cids')
-const { encodeCID, decodeCID } = require('./cid')
+import { CID } from 'multiformats/cid'
+import { encodeCID, decodeCID } from './cid.js'
 
 /**
  * @typedef {import('./data').JSONValue} JSONValue
@@ -23,7 +21,7 @@ const { encodeCID, decodeCID } = require('./cid')
  * @param {EncodedDAGNode} encodedNode
  * @returns {DAGNode}
  */
-const decodeNode = ({ dagNode, cids }) => {
+export const decodeNode = ({ dagNode, cids }) => {
   // It is not ideal to have to mutate prototype chains like
   // this, but it removes a need of traversing node first on client
   // and now on server.
@@ -34,8 +32,6 @@ const decodeNode = ({ dagNode, cids }) => {
   return dagNode
 }
 
-exports.decodeNode = decodeNode
-
 /**
  * Encodes DAG node for over the message channel transfer by collecting all
  * the CID instances into an array so they could be turned back into CIDs
@@ -45,16 +41,15 @@ exports.decodeNode = decodeNode
  * this node will be added to transfer so they are moved across without copy.
  *
  * @param {DAGNode} dagNode
- * @param {Transferable[]} [transfer]
+ * @param {Set<Transferable>} [transfer]
  * @returns {EncodedDAGNode}
  */
-const encodeNode = (dagNode, transfer) => {
+export const encodeNode = (dagNode, transfer) => {
   /** @type {CID[]} */
   const cids = []
   collectNode(dagNode, cids, transfer)
   return { dagNode, cids }
 }
-exports.encodeNode = encodeNode
 
 /**
  * Recursively traverses passed `value` and collects encountered `CID` instances
@@ -63,21 +58,23 @@ exports.encodeNode = encodeNode
  *
  * @param {DAGNode} value
  * @param {CID[]} cids
- * @param {Transferable[]} [transfer]
+ * @param {Set<Transferable>} [transfer]
  * @returns {void}
  */
 const collectNode = (value, cids, transfer) => {
   if (value != null && typeof value === 'object') {
-    if (CID.isCID(value)) {
-      cids.push(value)
-      encodeCID(value, transfer)
+    const cid = CID.asCID(value)
+
+    if (cid) {
+      cids.push(cid)
+      encodeCID(cid, transfer)
     } else if (value instanceof ArrayBuffer) {
       if (transfer) {
-        transfer.push(value)
+        transfer.add(value)
       }
     } else if (ArrayBuffer.isView(value)) {
       if (transfer) {
-        transfer.push(value.buffer)
+        transfer.add(value.buffer)
       }
     } else if (Array.isArray(value)) {
       for (const member of value) {

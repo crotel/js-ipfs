@@ -1,21 +1,20 @@
-'use strict'
+import Hapi from '@hapi/hapi'
+import Pino from 'hapi-pino'
+import debug from 'debug'
+import { Multiaddr } from 'multiaddr'
+// @ts-expect-error no types
+import toMultiaddr from 'uri-to-multiaddr'
+import Boom from '@hapi/boom'
+import { routes } from './api/routes/index.js'
+import { errorHandler } from './error-handler.js'
+import { setMaxListeners } from 'events'
 
-const Hapi = require('@hapi/hapi')
-const Pino = require('hapi-pino')
-const debug = require('debug')
-const { Multiaddr } = require('multiaddr')
-// @ts-ignore no types
-const toMultiaddr = require('uri-to-multiaddr')
-const Boom = require('@hapi/boom')
-const { AbortController } = require('native-abort-controller')
-const errorHandler = require('./error-handler')
 const LOG = 'ipfs:http-api'
 const LOG_ERROR = 'ipfs:http-api:error'
 
 /**
  * @typedef {import('ipfs-core-types').IPFS} IPFS
  * @typedef {import('./types').Server} Server
- * @typedef {import('ipld')} IPLD
  * @typedef {import('libp2p')} libp2p
  */
 
@@ -88,7 +87,7 @@ function isAllowedOrigin (str, allowedOrigins = []) {
   return false
 }
 
-class HttpApi {
+export class HttpApi {
   /**
    * @param {IPFS} ipfs
    */
@@ -103,8 +102,6 @@ class HttpApi {
 
   /**
    * Starts the IPFS HTTP server
-   *
-   * @returns {Promise<HttpApi>}
    */
   async start () {
     this._log('starting')
@@ -120,8 +117,11 @@ class HttpApi {
       credentials: Boolean(headers['Access-Control-Allow-Credentials'])
     })
 
+    // for the CLI to know the whereabouts of the API
+    // @ts-ignore - ipfs.repo.setApiAddr is not part of the core api
+    await ipfs.repo.setApiAddr(this._apiServers[0].info.ma)
+
     this._log('started')
-    return this
   }
 
   /**
@@ -172,9 +172,16 @@ class HttpApi {
           return h.continue
         }
 
-        if (request.method === 'get' && (request.path.startsWith('/ipfs') || request.path.startsWith('/webui'))) {
-          // allow requests to the webui
-          return h.continue
+        if (request.method === 'get') {
+          if (request.path.startsWith('/ipfs') || request.path.startsWith('/webui')) {
+            // allow requests to the gateway and webui
+            return h.continue
+          }
+
+          if (process.env.IPFS_MONITORING && request.path.startsWith('/debug')) {
+            // allow requests to prometheus stats when monitoring is enabled
+            return h.continue
+          }
         }
 
         throw Boom.methodNotAllowed()
@@ -241,7 +248,14 @@ class HttpApi {
       type: 'onRequest',
       method: function (request, h) {
         const controller = new AbortController()
+        // make sure we don't cause warnings to be logged for 'abort' event listeners
+        setMaxListeners && setMaxListeners(Infinity, controller.signal)
         request.app.signal = controller.signal
+
+        // abort the request if the client disconnects
+        request.raw.res.once('close', () => {
+          controller.abort()
+        })
 
         // abort the request if the client disconnects
         request.events.once('disconnect', () => {
@@ -252,7 +266,7 @@ class HttpApi {
       }
     })
 
-    server.route(require('./api/routes'))
+    server.route(routes)
 
     errorHandler(server)
 
@@ -278,5 +292,3 @@ class HttpApi {
     this._log('stopped')
   }
 }
-
-module.exports = HttpApi

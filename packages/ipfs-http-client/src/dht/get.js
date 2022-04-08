@@ -1,38 +1,31 @@
-'use strict'
-
-const configure = require('../lib/configure')
-const toUrlSearchParams = require('../lib/to-url-search-params')
-const { Value } = require('./response-types')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const uint8ArrayFromString = require('uint8arrays/from-string')
+import { configure } from '../lib/configure.js'
+import { toUrlSearchParams } from '../lib/to-url-search-params.js'
+import { mapEvent } from './map-event.js'
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 
 /**
  * @typedef {import('../types').HTTPClientExtraOptions} HTTPClientExtraOptions
  * @typedef {import('ipfs-core-types/src/dht').API<HTTPClientExtraOptions>} DHTAPI
  */
 
-module.exports = configure(api => {
+export const createGet = configure(api => {
   /**
    * @type {DHTAPI["get"]}
    */
-  async function get (key, options = {}) {
+  async function * get (key, options = {}) {
     const res = await api.post('dht/get', {
-      timeout: options.timeout,
       signal: options.signal,
       searchParams: toUrlSearchParams({
-        arg: key instanceof Uint8Array ? uint8ArrayToString(key) : key,
+        // arg: base36.encode(key),
+        arg: key instanceof Uint8Array ? uint8ArrayToString(key) : key.toString(),
         ...options
       }),
       headers: options.headers
     })
 
-    for await (const message of res.ndjson()) {
-      if (message.Type === Value) {
-        return uint8ArrayFromString(message.Extra, 'base64pad')
-      }
+    for await (const event of res.ndjson()) {
+      yield mapEvent(event)
     }
-
-    throw new Error('not found')
   }
 
   return get

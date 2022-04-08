@@ -1,13 +1,11 @@
 /* eslint max-nested-callbacks: ["error", 8] */
 /* eslint-env mocha */
-'use strict'
 
-const { expect } = require('aegir/utils/chai')
-const testHttpMethod = require('../utils/test-http-method')
-const http = require('../utils/http')
-const sinon = require('sinon')
-const allNdjson = require('../utils/all-ndjson')
-const { AbortSignal } = require('native-abort-controller')
+import { expect } from 'aegir/utils/chai.js'
+import { testHttpMethod } from '../utils/test-http-method.js'
+import { http } from '../utils/http.js'
+import sinon from 'sinon'
+import { allNdjson } from '../utils/all-ndjson.js'
 
 const defaultOptions = {
   count: 10,
@@ -29,15 +27,6 @@ describe('/ping', function () {
     return testHttpMethod('/api/v0/ping')
   })
 
-  it('returns 400 if both n and count are provided', async () => {
-    const res = await http({
-      method: 'POST',
-      url: '/api/v0/ping?arg=peerid&n=1&count=1'
-    }, { ipfs })
-
-    expect(res).to.have.property('statusCode', 400)
-  })
-
   it('returns 400 if arg is not provided', async () => {
     const res = await http({
       method: 'POST',
@@ -48,7 +37,10 @@ describe('/ping', function () {
   })
 
   it('returns error for incorrect Peer Id', async () => {
-    ipfs.ping.withArgs(peerId).throws(new Error('derp'))
+    ipfs.ping.withArgs(peerId)
+      .callsFake(async function * () { // eslint-disable-line require-yield
+        throw new Error('derp')
+      })
 
     const res = await http({
       method: 'POST',
@@ -62,7 +54,7 @@ describe('/ping', function () {
     ipfs.ping.withArgs(peerId, {
       ...defaultOptions,
       count: 5
-    }).returns([])
+    }).callsFake(async function * () {})
 
     const res = await http({
       method: 'POST',
@@ -76,7 +68,7 @@ describe('/ping', function () {
     ipfs.ping.withArgs(peerId, {
       ...defaultOptions,
       count: 5
-    }).returns([])
+    }).callsFake(async function * () {})
 
     const res = await http({
       method: 'POST',
@@ -87,15 +79,19 @@ describe('/ping', function () {
   })
 
   it('pings a remote peer', async () => {
-    ipfs.ping.withArgs(peerId, defaultOptions).returns([{
-      success: true,
-      time: 1,
-      text: 'hello'
-    }, {
-      success: true,
-      time: 2,
-      text: 'world'
-    }])
+    ipfs.ping.withArgs(peerId, defaultOptions)
+      .callsFake(async function * () {
+        yield {
+          success: true,
+          time: 1,
+          text: 'hello'
+        }
+        yield {
+          success: true,
+          time: 2,
+          text: 'world'
+        }
+      })
 
     const res = await http({
       method: 'POST',
@@ -118,7 +114,7 @@ describe('/ping', function () {
     ipfs.ping.withArgs(peerId, {
       ...defaultOptions,
       timeout: 1000
-    }).returns([])
+    }).callsFake(async function * () {})
 
     const res = await http({
       method: 'POST',

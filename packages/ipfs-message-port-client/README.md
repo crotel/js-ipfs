@@ -10,11 +10,6 @@
 
 > A client library for the IPFS API over [message channel][]. This client library provides (subset) of [IPFS API](https://github.com/ipfs/js-ipfs/tree/master/docs/core-api) enabling applications to work with js-ipfs running in the different JS e.g. [SharedWorker][].
 
-
-## Lead Maintainer <!-- omit in toc -->
-
-[Alex Potsides](https://github.com/achingbrain)
-
 ## Table of Contentens <!-- omit in toc -->
 
 - [Install](#install)
@@ -49,7 +44,7 @@ separate JS bundle and loaded in the [SharedWorker][].
 
 
 ```js
-const IPFSClient = require('ipfs-message-port-client')
+import { IPFSClient } from 'ipfs-message-port-client'
 // URL to the script containing ipfs-message-port-server.
 const IPFS_SERVER_URL = '/bundle/ipfs-worker.js'
 
@@ -72,8 +67,7 @@ from another JS context (e.g. iframe)
 > attached (unless they time out or are aborted in the meantime).
 
 ```js
-const IPFSClient = require('ipfs-message-port-client')
-
+import { IPFSClient } from 'ipfs-message-port-client'
 
 const ipfs = IPFSClient.detached()
 

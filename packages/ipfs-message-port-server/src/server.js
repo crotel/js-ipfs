@@ -1,8 +1,7 @@
-'use strict'
 
 /* eslint-env browser */
 
-const { encodeError } = require('ipfs-message-port-protocol/src/error')
+import { encodeError } from 'ipfs-message-port-protocol/error'
 
 /**
  * @typedef {import('ipfs-message-port-protocol/src/data').EncodedError} EncodedError
@@ -31,6 +30,11 @@ const { encodeError } = require('ipfs-message-port-protocol/src/error')
 /**
  * @template T
  * @typedef {import('ipfs-message-port-protocol/src/rpc').ServiceQuery<T>} ServiceQuery
+ */
+
+/**
+ * @template T
+ * @typedef {import('ipfs-message-port-protocol/src/rpc').Return<T>} Return
  */
 
 /**
@@ -66,7 +70,7 @@ const { encodeError } = require('ipfs-message-port-protocol/src/error')
 
 /**
  * @typedef {Object} TransferOptions
- * @property {Transferable[]} [transfer]
+ * @property {Set<Transferable>} [transfer]
  */
 
 /**
@@ -91,13 +95,14 @@ const { encodeError } = require('ipfs-message-port-protocol/src/error')
  * @extends {ServiceQuery<T>}
  */
 
-const Query = class Query {
+export class Query {
   /**
    * @param {Namespace<T>} namespace
    * @param {Method<T>} method
    * @param {Inn<T>} input
    */
   constructor (namespace, method, input) {
+    /** @type {Return<any>} */
     this.result = new Promise((resolve, reject) => {
       this.succeed = resolve
       this.fail = reject
@@ -118,7 +123,6 @@ const Query = class Query {
     this.fail(new AbortError())
   }
 }
-exports.Query = Query
 
 /**
  * @template T
@@ -131,7 +135,7 @@ exports.Query = Query
  * @template T
  */
 
-exports.Server = class Server {
+export class Server {
   /**
    * @param {MultiService<T>} services
    */
@@ -212,14 +216,16 @@ exports.Server = class Server {
     if (!query.signal.aborted) {
       try {
         const value = await query.result
-        const transfer = [...new Set(value.transfer || [])]
+        const transfer = value.transfer
+
+        // Don't need the transfer value in the result
         delete value.transfer
 
         port.postMessage(
           { type: 'result', id, result: { ok: true, value } },
           transfer
         )
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         port.postMessage({
           type: 'result',
           id,
@@ -243,7 +249,7 @@ exports.Server = class Server {
         try {
           const result = service[method]({ ...query.input, signal: query.signal })
           Promise.resolve(result).then(query.succeed, query.fail)
-        } catch (error) {
+        } catch (/** @type {any} */ error) {
           query.fail(error)
         }
       } else {
@@ -266,7 +272,7 @@ exports.Server = class Server {
   }
 }
 
-const UnsupportedMessageError = class UnsupportedMessageError extends RangeError {
+export class UnsupportedMessageError extends RangeError {
   /**
    * @param {MessageEvent} event
    */
@@ -279,11 +285,9 @@ const UnsupportedMessageError = class UnsupportedMessageError extends RangeError
     return this.constructor.name
   }
 }
-exports.UnsupportedMessageError = UnsupportedMessageError
 
-const AbortError = class AbortError extends Error {
+export const AbortError = class AbortError extends Error {
   get name () {
     return this.constructor.name
   }
 }
-exports.AbortError = AbortError

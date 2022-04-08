@@ -1,29 +1,29 @@
-'use strict'
-
-const Service = require('../utils/service')
+import { Service } from '../utils/service.js'
 
 /**
  * @param {Object} config
  * @param {import('../types').NetworkService} config.network
  * @param {import('../types').Preload} config.preload
- * @param {import('ipfs-block-service')} config.blockService
- * @param {import('./ipns')} config.ipns
- * @param {import('ipfs-repo')} config.repo
+ * @param {import('./ipns').IPNSAPI} config.ipns
+ * @param {import('ipfs-repo').IPFSRepo} config.repo
  * @param {import('../types').MfsPreload} config.mfsPreload
  */
-module.exports = ({ network, preload, blockService, ipns, repo, mfsPreload }) => {
+export function createStop ({ network, preload, ipns, repo, mfsPreload }) {
   /**
-   * @type {import('ipfs-core-types/src/root').API["stop"]}
+   * @type {import('ipfs-core-types/src/root').API<{}>["stop"]}
    */
   const stop = async () => {
-    blockService.unsetExchange()
     await Promise.all([
       preload.stop(),
       ipns.stop(),
-      mfsPreload.stop(),
-      Service.stop(network),
-      repo.close()
+      mfsPreload.stop()
     ])
+
+    await Service.stop(network)
+
+    // must be closed after stopping services as some of them
+    // will write into the datastore
+    await repo.close()
   }
 
   return stop

@@ -1,12 +1,11 @@
 /* eslint-env mocha */
-'use strict'
 
-const { expect } = require('aegir/utils/chai')
-const { AbortController } = require('native-abort-controller')
-const uint8ArrayFromString = require('uint8arrays/from-string')
-const defer = require('p-defer')
+import { expect } from 'aegir/utils/chai.js'
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+import defer from 'p-defer'
+import { factory } from './utils/factory.js'
 
-const f = require('./utils/factory')()
+const f = factory()
 
 describe('.pubsub', function () {
   this.timeout(20 * 1000)
@@ -20,7 +19,7 @@ describe('.pubsub', function () {
       this.timeout(30 * 1000) // slow CI
 
       ctl = await await f.spawn({
-        args: '--enable-pubsub-experiment'
+        args: ['--enable-pubsub-experiment']
       })
 
       ipfs = ctl.api

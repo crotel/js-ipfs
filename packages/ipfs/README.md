@@ -33,10 +33,6 @@
 
 If you want to integrate IPFS into your application without including a CLI or HTTP server, see the [ipfs-core](https://github.com/ipfs/js-ipfs/tree/master/packages/ipfs-core) module.
 
-## Lead Maintainer <!-- omit in toc -->
-
-[Alex Potsides](http://github.com/achingbrain)
-
 ## Table of Contents <!-- omit in toc -->
 
 - [Getting Started](#getting-started)
@@ -74,7 +70,7 @@ added QmXXY5ZxbtuYj6DnfApLiGstzPN7fvSyigrRee3hDWPCaf hello-world.txt
 ### Next Steps
 
 * Read the [docs](https://github.com/ipfs/js-ipfs/tree/master/docs)
-* Look into the [examples](https://github.com/ipfs/js-ipfs/tree/master/examples) to learn how to spawn an IPFS node in Node.js and in the Browser
+* Look into the [examples](https://github.com/ipfs-examples/js-ipfs-examples) to learn how to spawn an IPFS node in Node.js and in the Browser
 * Consult the [Core API docs](https://github.com/ipfs/js-ipfs/tree/master/docs/core-api) to see what you can do with an IPFS node
 * Visit https://dweb-primer.ipfs.io to learn about IPFS and the concepts that underpin it
 * Head over to https://proto.school to take interactive tutorials that cover core IPFS APIs

@@ -3,6 +3,231 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.12.2...ipfs-core-utils@0.13.0) (2021-12-15)
+
+
+### Features
+
+* dht client ([#3947](https://github.com/ipfs/js-ipfs/issues/3947)) ([62d8ecb](https://github.com/ipfs/js-ipfs/commit/62d8ecbc723e693a2544e69172d99c576d187c23))
+
+
+### BREAKING CHANGES
+
+* The DHT API has been refactored to return async iterators of query events
+
+
+
+
+
+### [0.14.2](https://www.github.com/ipfs/js-ipfs/compare/ipfs-core-utils-v0.14.1...ipfs-core-utils-v0.14.2) (2022-03-01)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.1 to ^0.10.2
+
+### [0.14.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-core-utils-v0.14.0...ipfs-core-utils-v0.14.1) (2022-02-06)
+
+
+### Bug Fixes
+
+* **dag:** replace custom dag walk with multiformats/traversal ([#3950](https://www.github.com/ipfs/js-ipfs/issues/3950)) ([596b1f4](https://www.github.com/ipfs/js-ipfs/commit/596b1f48a014083b1736e4ad7e746c652d2583b1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.0 to ^0.10.1
+
+## [0.14.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-core-utils-v0.13.0...ipfs-core-utils-v0.14.0) (2022-01-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* peerstore methods are now all async, the repo is migrated to v12
+* node 15+ is required
+
+### Features
+
+* libp2p async peerstore ([#4018](https://www.github.com/ipfs/js-ipfs/issues/4018)) ([a6b201a](https://www.github.com/ipfs/js-ipfs/commit/a6b201af2c3697430ab0ebe002dd573d185f1ac0))
+
+
+### Bug Fixes
+
+* remove abort-controller deps ([#4015](https://www.github.com/ipfs/js-ipfs/issues/4015)) ([902e887](https://www.github.com/ipfs/js-ipfs/commit/902e887e1acac87f607324fa7cb5ad4b14aefcf3))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.9.0 to ^0.10.0
+
+## [0.12.2](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.12.1...ipfs-core-utils@0.12.2) (2021-11-24)
+
+
+### Bug Fixes
+
+* typo ([#3946](https://github.com/ipfs/js-ipfs/issues/3946)) ([70c67e2](https://github.com/ipfs/js-ipfs/commit/70c67e27d0b82c7650a2a0d7a646afdcd24e73c2))
+
+
+
+
+
+## [0.12.1](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.12.0...ipfs-core-utils@0.12.1) (2021-11-19)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+# [0.12.0](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.11.1...ipfs-core-utils@0.12.0) (2021-11-12)
+
+
+### Bug Fixes
+
+* do not accept single items for ipfs.add ([#3900](https://github.com/ipfs/js-ipfs/issues/3900)) ([04e3cf3](https://github.com/ipfs/js-ipfs/commit/04e3cf3f46b585c4644cba70516f375e95361f52))
+
+
+### BREAKING CHANGES
+
+* errors will now be thrown if multiple items are passed to `ipfs.add` or single items to `ipfs.addAll` (n.b. you can still pass a list of a single item to `ipfs.addAll`)
+
+
+
+
+
+## [0.11.1](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.11.0...ipfs-core-utils@0.11.1) (2021-09-28)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+# [0.11.0](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.5...ipfs-core-utils@0.11.0) (2021-09-24)
+
+
+### Bug Fixes
+
+* handle node readable streams properly ([#3890](https://github.com/ipfs/js-ipfs/issues/3890)) ([b0f367d](https://github.com/ipfs/js-ipfs/commit/b0f367d666aceb4ea8bdd532a9d8c3501f8cc78d)), closes [#3882](https://github.com/ipfs/js-ipfs/issues/3882)
+
+
+### Features
+
+* pull in new globSource ([#3889](https://github.com/ipfs/js-ipfs/issues/3889)) ([be4a542](https://github.com/ipfs/js-ipfs/commit/be4a5428ebc4b05a2edd9a91bf9df6416c1a8c2b))
+* switch to esm ([#3879](https://github.com/ipfs/js-ipfs/issues/3879)) ([9a40109](https://github.com/ipfs/js-ipfs/commit/9a40109632e5b4837eb77a2f57dbc77fbf1fe099))
+
+
+### BREAKING CHANGES
+
+* the globSource api has changed from `globSource(dir, opts)` to `globSource(dir, pattern, opts)`
+* There are no default exports and everything is now dual published as ESM/CJS
+
+
+
+
+
+## [0.10.5](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.4...ipfs-core-utils@0.10.5) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+## [0.10.4](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.3...ipfs-core-utils@0.10.4) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+## [0.10.3](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.2...ipfs-core-utils@0.10.3) (2021-09-02)
+
+
+### Bug Fixes
+
+* declare types in .ts files ([#3840](https://github.com/ipfs/js-ipfs/issues/3840)) ([eba5fe6](https://github.com/ipfs/js-ipfs/commit/eba5fe6832858107b3e1ae02c99de674622f12b4))
+* remove use of instanceof for CID class ([#3847](https://github.com/ipfs/js-ipfs/issues/3847)) ([ebbb12d](https://github.com/ipfs/js-ipfs/commit/ebbb12db523c53ce8e4ddae5266cd9acb3504431))
+
+
+
+
+
+## [0.10.2](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.1...ipfs-core-utils@0.10.2) (2021-08-25)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+## [0.10.1](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.10.0...ipfs-core-utils@0.10.1) (2021-08-17)
+
+
+### Bug Fixes
+
+* throw error on missing input to add/addAll ([#3818](https://github.com/ipfs/js-ipfs/issues/3818)) ([1343708](https://github.com/ipfs/js-ipfs/commit/1343708f70d7298b6677555803d68ff282d89439)), closes [#3788](https://github.com/ipfs/js-ipfs/issues/3788)
+
+
+
+
+
+# [0.10.0](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.9.1...ipfs-core-utils@0.10.0) (2021-08-11)
+
+
+### Features
+
+* make ipfs.get output tarballs ([#3785](https://github.com/ipfs/js-ipfs/issues/3785)) ([1ad6001](https://github.com/ipfs/js-ipfs/commit/1ad60018d39d5b46c484756631e30e1989fd8eba))
+
+
+### BREAKING CHANGES
+
+* the output type of `ipfs.get` has changed and the `recursive` option has been removed from `ipfs.ls` since it was not supported everywhere
+
+
+
+
+
+## [0.9.1](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.9.0...ipfs-core-utils@0.9.1) (2021-07-30)
+
+**Note:** Version bump only for package ipfs-core-utils
+
+
+
+
+
+# [0.9.0](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.8.3...ipfs-core-utils@0.9.0) (2021-07-27)
+
+
+### Bug Fixes
+
+* support @web-std/file in normalize input ([#3750](https://github.com/ipfs/js-ipfs/issues/3750)) ([6fd7776](https://github.com/ipfs/js-ipfs/commit/6fd777679d0aa80bbb784d16585456e54b5cf294))
+
+
+### Features
+
+* implement dag import/export ([#3728](https://github.com/ipfs/js-ipfs/issues/3728)) ([700765b](https://github.com/ipfs/js-ipfs/commit/700765be2634fa5d2d71d8b87cf68c9cd328d2c4)), closes [#2953](https://github.com/ipfs/js-ipfs/issues/2953) [#2745](https://github.com/ipfs/js-ipfs/issues/2745)
+* upgrade to the new multiformats ([#3556](https://github.com/ipfs/js-ipfs/issues/3556)) ([d13d15f](https://github.com/ipfs/js-ipfs/commit/d13d15f022a87d04a35f0f7822142f9cb898479c))
+
+
+### BREAKING CHANGES
+
+* ipld-formats no longer supported, use multiformat BlockCodecs instead
+
+Co-authored-by: Rod Vagg <rod@vagg.org>
+Co-authored-by: achingbrain <alex@achingbrain.net>
+
+
+
+
+
 ## [0.8.3](https://github.com/ipfs/js-ipfs/compare/ipfs-core-utils@0.8.2...ipfs-core-utils@0.8.3) (2021-06-18)
 
 **Note:** Version bump only for package ipfs-core-utils

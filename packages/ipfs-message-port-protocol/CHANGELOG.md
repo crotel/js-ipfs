@@ -3,6 +3,185 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.11.2](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol-v0.11.1...ipfs-message-port-protocol-v0.11.2) (2022-03-01)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.1 to ^0.10.2
+
+### [0.11.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol-v0.11.0...ipfs-message-port-protocol-v0.11.1) (2022-02-06)
+
+
+### Bug Fixes
+
+* **dag:** replace custom dag walk with multiformats/traversal ([#3950](https://www.github.com/ipfs/js-ipfs/issues/3950)) ([596b1f4](https://www.github.com/ipfs/js-ipfs/commit/596b1f48a014083b1736e4ad7e746c652d2583b1))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.10.0 to ^0.10.1
+
+## [0.11.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol-v0.10.5...ipfs-message-port-protocol-v0.11.0) (2022-01-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* peerstore methods are now all async, the repo is migrated to v12
+
+### Features
+
+* libp2p async peerstore ([#4018](https://www.github.com/ipfs/js-ipfs/issues/4018)) ([a6b201a](https://www.github.com/ipfs/js-ipfs/commit/a6b201af2c3697430ab0ebe002dd573d185f1ac0))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.9.0 to ^0.10.0
+
+## [0.10.5](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.10.4...ipfs-message-port-protocol@0.10.5) (2021-12-15)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+## [0.10.4](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.10.3...ipfs-message-port-protocol@0.10.4) (2021-11-24)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+## [0.10.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.10.2...ipfs-message-port-protocol@0.10.3) (2021-11-19)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+## [0.10.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.10.1...ipfs-message-port-protocol@0.10.2) (2021-11-12)
+
+
+### Bug Fixes
+
+* transfer set ([#3573](https://github.com/ipfs/js-ipfs/issues/3573)) ([b09a18c](https://github.com/ipfs/js-ipfs/commit/b09a18cd98883662353d116a8ff25a3ddaa48fc2))
+
+
+
+
+
+## [0.10.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.10.0...ipfs-message-port-protocol@0.10.1) (2021-09-28)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+# [0.10.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.9.4...ipfs-message-port-protocol@0.10.0) (2021-09-24)
+
+
+### Features
+
+* switch to esm ([#3879](https://github.com/ipfs/js-ipfs/issues/3879)) ([9a40109](https://github.com/ipfs/js-ipfs/commit/9a40109632e5b4837eb77a2f57dbc77fbf1fe099))
+
+
+### BREAKING CHANGES
+
+* There are no default exports and everything is now dual published as ESM/CJS
+
+
+
+
+
+## [0.9.4](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.9.3...ipfs-message-port-protocol@0.9.4) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+## [0.9.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.9.2...ipfs-message-port-protocol@0.9.3) (2021-09-17)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+## [0.9.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.9.1...ipfs-message-port-protocol@0.9.2) (2021-09-02)
+
+
+### Bug Fixes
+
+* declare types in .ts files ([#3840](https://github.com/ipfs/js-ipfs/issues/3840)) ([eba5fe6](https://github.com/ipfs/js-ipfs/commit/eba5fe6832858107b3e1ae02c99de674622f12b4))
+* remove use of instanceof for CID class ([#3847](https://github.com/ipfs/js-ipfs/issues/3847)) ([ebbb12d](https://github.com/ipfs/js-ipfs/commit/ebbb12db523c53ce8e4ddae5266cd9acb3504431))
+
+
+
+
+
+## [0.9.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.9.0...ipfs-message-port-protocol@0.9.1) (2021-08-25)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+# [0.9.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.8.1...ipfs-message-port-protocol@0.9.0) (2021-08-11)
+
+
+### Features
+
+* make ipfs.get output tarballs ([#3785](https://github.com/ipfs/js-ipfs/issues/3785)) ([1ad6001](https://github.com/ipfs/js-ipfs/commit/1ad60018d39d5b46c484756631e30e1989fd8eba))
+
+
+### BREAKING CHANGES
+
+* the output type of `ipfs.get` has changed and the `recursive` option has been removed from `ipfs.ls` since it was not supported everywhere
+
+
+
+
+
+## [0.8.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.8.0...ipfs-message-port-protocol@0.8.1) (2021-07-30)
+
+**Note:** Version bump only for package ipfs-message-port-protocol
+
+
+
+
+
+# [0.8.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.7.3...ipfs-message-port-protocol@0.8.0) (2021-07-27)
+
+
+### Features
+
+* upgrade to the new multiformats ([#3556](https://github.com/ipfs/js-ipfs/issues/3556)) ([d13d15f](https://github.com/ipfs/js-ipfs/commit/d13d15f022a87d04a35f0f7822142f9cb898479c))
+
+
+### BREAKING CHANGES
+
+* ipld-formats no longer supported, use multiformat BlockCodecs instead
+
+Co-authored-by: Rod Vagg <rod@vagg.org>
+Co-authored-by: achingbrain <alex@achingbrain.net>
+
+
+
+
+
 ## [0.7.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-protocol@0.7.2...ipfs-message-port-protocol@0.7.3) (2021-06-18)
 
 **Note:** Version bump only for package ipfs-message-port-protocol

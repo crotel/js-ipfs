@@ -1,7 +1,10 @@
-'use strict'
+import { decodeError } from 'ipfs-message-port-protocol/error'
+import { DisconnectError, TimeoutError, AbortError } from './error.js'
 
-const { decodeError } = require('ipfs-message-port-protocol/src/error')
-const { DisconnectError, TimeoutError, AbortError } = require('./error')
+/**
+ * @template I,O
+ * @typedef {import('./query').Query<I, O>} Query
+ */
 
 /**
  * RPC Transport over `MessagePort` that can execute queries. It takes care of
@@ -13,7 +16,7 @@ const { DisconnectError, TimeoutError, AbortError } = require('./error')
  * instance.
  *
  */
-module.exports = class MessageTransport {
+export class MessageTransport {
   /**
    * Create transport for the underlying message port.
    *
@@ -177,8 +180,8 @@ module.exports = class MessageTransport {
         id,
         input: query.toJSON()
       },
-      // @ts-ignore - TS seems to want second arg to postMessage to not be undefined
-      [...new Set(query.transfer() || [])]
+      // @ts-expect-error - Type signature does not expect 2nd undefined arg
+      query.transfer()
     )
   }
 
@@ -208,8 +211,3 @@ module.exports = class MessageTransport {
     }
   }
 }
-
-/**
- * @template I,O
- * @typedef {import('./query')<I, O>} Query
- */

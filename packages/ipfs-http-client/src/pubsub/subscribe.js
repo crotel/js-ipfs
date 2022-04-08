@@ -1,10 +1,8 @@
-'use strict'
-
-const uint8ArrayFromString = require('uint8arrays/from-string')
-const uint8ArrayToString = require('uint8arrays/to-string')
-const log = require('debug')('ipfs-http-client:pubsub:subscribe')
-const configure = require('../lib/configure')
-const toUrlSearchParams = require('../lib/to-url-search-params')
+import debug from 'debug'
+import { configure } from '../lib/configure.js'
+import { toUrlSearchParams } from '../lib/to-url-search-params.js'
+import { textToUrlSafeRpc, rpcArrayToTextArray, rpcToBytes } from '../lib/http-rpc-wire-format.js'
+const log = debug('ipfs-http-client:pubsub:subscribe')
 
 /**
  * @typedef {import('../types').HTTPClientExtraOptions} HTTPClientExtraOptions
@@ -16,9 +14,9 @@ const toUrlSearchParams = require('../lib/to-url-search-params')
 
 /**
  * @param {Options} options
- * @param {import('./subscription-tracker')} subsTracker
+ * @param {import('./subscription-tracker').SubscriptionTracker} subsTracker
  */
-module.exports = (options, subsTracker) => {
+export const createSubscribe = (options, subsTracker) => {
   return configure((api) => {
     /**
      * @type {PubsubAPI["subscribe"]}
@@ -41,39 +39,36 @@ module.exports = (options, subsTracker) => {
       const ffWorkaround = setTimeout(() => done(), 1000)
 
       // Do this async to not block Firefox
-      setTimeout(() => {
-        api.post('pubsub/sub', {
-          timeout: options.timeout,
-          signal: options.signal,
-          searchParams: toUrlSearchParams({
-            arg: topic,
-            ...options
-          }),
-          headers: options.headers
+      api.post('pubsub/sub', {
+        signal: options.signal,
+        searchParams: toUrlSearchParams({
+          arg: textToUrlSafeRpc(topic),
+          ...options
+        }),
+        headers: options.headers
+      })
+        .catch((err) => {
+          // Initial subscribe fail, ensure we clean up
+          subsTracker.unsubscribe(topic, handler)
+
+          fail(err)
         })
-          .catch((err) => {
-            // Initial subscribe fail, ensure we clean up
-            subsTracker.unsubscribe(topic, handler)
+        .then((response) => {
+          clearTimeout(ffWorkaround)
 
-            fail(err)
+          if (!response) {
+            // if there was no response, the subscribe failed
+            return
+          }
+
+          readMessages(response, {
+            onMessage: handler,
+            onEnd: () => subsTracker.unsubscribe(topic, handler),
+            onError: options.onError
           })
-          .then((response) => {
-            clearTimeout(ffWorkaround)
 
-            if (!response) {
-              // if there was no response, the subscribe failed
-              return
-            }
-
-            readMessages(response, {
-              onMessage: handler,
-              onEnd: () => subsTracker.unsubscribe(topic, handler),
-              onError: options.onError
-            })
-
-            done()
-          })
-      }, 0)
+          done()
+        })
 
       return result
     }
@@ -99,17 +94,17 @@ async function readMessages (response, { onMessage, onEnd, onError }) {
         }
 
         onMessage({
-          from: uint8ArrayToString(uint8ArrayFromString(msg.from, 'base64pad'), 'base58btc'),
-          data: uint8ArrayFromString(msg.data, 'base64pad'),
-          seqno: uint8ArrayFromString(msg.seqno, 'base64pad'),
-          topicIDs: msg.topicIDs
+          from: msg.from,
+          data: rpcToBytes(msg.data),
+          seqno: rpcToBytes(msg.seqno),
+          topicIDs: rpcArrayToTextArray(msg.topicIDs)
         })
-      } catch (err) {
+      } catch (/** @type {any} */ err) {
         err.message = `Failed to parse pubsub message: ${err.message}`
         onError(err, false, msg) // Not fatal
       }
     }
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     if (!isAbortError(err)) {
       onError(err, true) // Fatal
     }

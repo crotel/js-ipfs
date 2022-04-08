@@ -1,43 +1,50 @@
 /* eslint-env mocha */
-'use strict'
 
-const { getDescribe, getIt, expect } = require('../utils/mocha')
-const all = require('it-all')
-const drain = require('it-drain')
-const { fakeCid } = require('./utils')
-const testTimeout = require('../utils/test-timeout')
+import { expect } from 'aegir/utils/chai.js'
+import { getDescribe, getIt } from '../utils/mocha.js'
+import all from 'it-all'
+import drain from 'it-drain'
+import testTimeout from '../utils/test-timeout.js'
+import { ensureReachable } from './utils.js'
 
-/** @typedef { import("ipfsd-ctl/src/factory") } Factory */
 /**
- * @param {Factory} common
+ * @typedef {import('ipfsd-ctl').Factory} Factory
+ */
+
+/**
+ * @param {Factory} factory
  * @param {Object} options
  */
-module.exports = (common, options) => {
+export function testFindProvs (factory, options) {
   const describe = getDescribe(options)
   const it = getIt(options)
 
   describe('.dht.findProvs', function () {
-    this.timeout(20000)
+    this.timeout(80 * 1000)
+
+    /** @type {import('ipfs-core-types').IPFS} */
     let nodeA
+    /** @type {import('ipfs-core-types').IPFS} */
     let nodeB
+    /** @type {import('ipfs-core-types').IPFS} */
     let nodeC
 
     before(async () => {
-      nodeA = (await common.spawn()).api
-      nodeB = (await common.spawn()).api
-      nodeC = (await common.spawn()).api
-      await Promise.all([
-        nodeB.swarm.connect(nodeA.peerId.addresses[0]),
-        nodeC.swarm.connect(nodeB.peerId.addresses[0])
-      ])
+      nodeA = (await factory.spawn()).api
+      nodeB = (await factory.spawn()).api
+      nodeC = (await factory.spawn()).api
+
+      await ensureReachable(nodeB, nodeA)
+      await ensureReachable(nodeC, nodeB)
     })
 
-    after(() => common.clean())
+    after(() => factory.clean())
 
+    /**
+     * @type {import('multiformats/cid').CID}
+     */
     let providedCid
     before('add providers for the same cid', async function () {
-      this.timeout(10 * 1000)
-
       const cids = await Promise.all([
         nodeB.object.new('unixfs-dir'),
         nodeC.object.new('unixfs-dir')
@@ -58,37 +65,20 @@ module.exports = (common, options) => {
     })
 
     it('should be able to find providers', async function () {
-      this.timeout(20 * 1000)
+      /** @type {string[]} */
+      const providerIds = []
 
-      const provs = await all(nodeA.dht.findProvs(providedCid, { numProviders: 2 }))
-      const providerIds = provs.map((p) => p.id.toString())
-
-      expect(providerIds).to.have.members([
-        nodeB.peerId.id,
-        nodeC.peerId.id
-      ])
-    })
-
-    it('should take options to override timeout config', async function () {
-      const options = {
-        timeout: 1
+      for await (const event of nodeA.dht.findProvs(providedCid)) {
+        if (event.name === 'PROVIDER') {
+          providerIds.push(...event.providers.map(prov => prov.id))
+        }
       }
 
-      const cidV0 = await fakeCid()
-      const start = Date.now()
-      let res
+      const nodeBId = await nodeB.id()
+      const nodeCId = await nodeC.id()
 
-      try {
-        res = await all(nodeA.dht.findProvs(cidV0, options))
-      } catch (err) {
-        // rejected by http client
-        expect(err).to.have.property('name', 'TimeoutError')
-        return
-      }
-
-      // rejected by the server, errors don't work over http - https://github.com/ipfs/js-ipfs/issues/2519
-      expect(res).to.be.an('array').with.lengthOf(0)
-      expect(Date.now() - start).to.be.lessThan(100)
+      expect(providerIds).to.include(nodeBId.id)
+      expect(providerIds).to.include(nodeCId.id)
     })
   })
 }

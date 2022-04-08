@@ -1,8 +1,6 @@
-'use strict'
+import parseDuration from 'parse-duration'
 
-const { default: parseDuration } = require('parse-duration')
-
-module.exports = {
+export default {
   command: 'query <peerId>',
 
   describe: 'Find the closest Peer IDs to a given Peer ID by querying the DHT.',
@@ -24,10 +22,21 @@ module.exports = {
    * @param {number} argv.timeout
    */
   async handler ({ ctx: { ipfs, print }, peerId, timeout }) {
-    for await (const result of ipfs.dht.query(peerId, {
+    const seen = new Set()
+
+    for await (const event of ipfs.dht.query(peerId, {
       timeout
     })) {
-      print(result.id.toString())
+      if (event.name === 'PEER_RESPONSE') {
+        event.closer.forEach(peerData => {
+          if (seen.has(peerData.id)) {
+            return
+          }
+
+          print(peerData.id)
+          seen.add(peerData.id)
+        })
+      }
     }
   }
 }
