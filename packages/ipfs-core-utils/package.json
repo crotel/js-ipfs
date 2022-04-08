@@ -136,7 +136,7 @@
     "uint8arrays": "^3.0.0"
   },
   "devDependencies": {
-    "@web-std/file": "^1.1.2",
+    "@web-std/file": "^3.0.2",
     "aegir": "^36.0.1",
     "rimraf": "^3.0.2"
   },
