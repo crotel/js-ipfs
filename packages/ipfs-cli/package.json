@@ -88,7 +88,7 @@
     "multiaddr-to-uri": "^8.0.0",
     "multiformats": "^9.5.1",
     "parse-duration": "^1.0.0",
-    "pretty-bytes": "^5.4.1",
+    "pretty-bytes": "^6.1.0",
     "progress": "^2.0.3",
     "stream-to-it": "^0.2.2",
     "uint8arrays": "^3.0.0",
